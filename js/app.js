@@ -134,7 +134,13 @@ text.select()
 
 document.execCommand("copy")
 
-alert("Script copied")
+Swal.fire({
+icon: 'success',
+title: 'Berhasil',
+text: 'Script berhasil dicopy!',
+timer: 1500,
+showConfirmButton: false
+})
 
 }
 
