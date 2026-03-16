@@ -39,7 +39,11 @@ let iface = document.getElementById("iface").value
 let olt = document.getElementById("oltType").value
 
 if(!iface){
-alert("Interface belum diisi")
+Swal.fire({
+icon: 'warning',
+title: 'Oops...',
+text: 'Interfaces Belum Diisi!!'
+})
 return
 }
 
