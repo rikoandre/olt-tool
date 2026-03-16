@@ -98,6 +98,7 @@ margin-top:20px;
 <button onclick="cekWan()">CEK WAN ONU</button>
 <button onclick="cekSn()">CEK SN ONU</button>
 <button onclick="cekIp()">CEK IP ONU</button>
+<button class="home" onclick="goHome()">HOME</button>
 
 </div>
 
@@ -372,6 +373,10 @@ let onu=document.getElementById("onu").value
 
 output.value=`show gpon remote-onu ip-host gpon-onu_${iface}:${onu}`
 
+}
+
+function goHome(){
+window.location.href="index.html"
 }
 
 </script>
