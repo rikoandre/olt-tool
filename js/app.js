@@ -149,7 +149,12 @@ let pass=document.getElementById("pass").value.trim()
 
 if(!iface || !onu || !sn || !user || !pass){
 
-alert("Semua field wajib diisi!")
+Swal.fire({
+icon: 'warning',
+title: 'Oops...',
+text: 'Semua field wajib diisi!'
+})
+
 
 return false
 
