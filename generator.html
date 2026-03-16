@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>OLT Script Generator</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>OLT SCRIPT GENERATOR</h1>
+
+<div class="form-grid">
+
+<select id="oltType" onchange="toggleVlan()">
+<option value="c300">OLT C300 / C320</option>
+<option value="c600">OLT C600</option>
+</select>
+
+<select id="vlan">
+
+<option value="110">UHO (110)</option>
+<option value="1002">UBL (1002)</option>
+<option value="1000">UGR (1000)</option>
+<option value="100">UNB (100)</option>
+<option value="1600">ALQORIYAH (1600)</option>
+<option value="1501">BOLO (1501)</option>
+<option value="511">CADAR (511)</option>
+<option value="602">ALNET (602)</option>
+<option value="903">LEXXA (903)</option>
+
+</select>
+
+<input id="iface" placeholder="Interface contoh 1/1/1" required>
+<input id="onu" placeholder="ONU ID" required>
+<input id="sn" placeholder="Serial Number" required>
+<input id="user" placeholder="PPPoE Username" required>
+<input id="pass" placeholder="PPPoE Password" required>
+
+<input id="desc" placeholder="Description (optional)" style="grid-column:span 2">
+
+</div>
+
+<button class="generate" onclick="generate()">GENERATE SCRIPT</button>
+<button class="copy" onclick="copyScript()">COPY SCRIPT</button>
+<button class="clear" onclick="clearForm()">CLEAR FORM</button>
+<button onclick="cekIndexOnu()">CEK ONU INDEX</button>
+
+<textarea id="output"></textarea>
+
+</div>
+
+<script src="js/templates.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

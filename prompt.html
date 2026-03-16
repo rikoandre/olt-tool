@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>OLT PROMPT TOOL</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+padding:30px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:10px;
+margin-bottom:20px;
+}
+
+input,select,button,textarea{
+padding:10px;
+border-radius:6px;
+border:none;
+font-size:14px;
+}
+
+button{
+background:#2563eb;
+color:white;
+cursor:pointer;
+}
+
+textarea{
+width:100%;
+height:220px;
+margin-top:20px;
+}
+
+.commands{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>OLT PROMPT TOOL</h1>
+
+<div class="grid">
+
+<select id="olt">
+<option value="c300">C300 / C320</option>
+<option value="c600">C600</option>
+</select>
+
+<input id="iface" placeholder="Interface contoh 146 atau 1/4/6">
+
+<input id="onu" placeholder="ONU ID">
+
+<input id="sn" placeholder="SN (jika perlu)">
+
+</div>
+
+<div class="commands">
+
+<button onclick="resetModem()">RESET MODEM</button>
+<button onclick="rebootModem()">REBOOT MODEM</button>
+<button onclick="gantiModem()">GANTI MODEM</button>
+
+<button onclick="cekRedamanPort()">CEK REDAMAN PORT</button>
+<button onclick="cekRedamanOnu()">CEK REDAMAN ONU</button>
+<button onclick="cekStatusPort()">CEK STATUS PORT</button>
+
+<button onclick="hapusOnu()">HAPUS ONU</button>
+<button onclick="aktifkanPort()">AKTIFKAN PORT</button>
+<button onclick="cekInterface()">CEK INTERFACE</button>
+
+<button onclick="cekWan()">CEK WAN ONU</button>
+<button onclick="cekSn()">CEK SN ONU</button>
+<button onclick="cekIp()">CEK IP ONU</button>
+
+</div>
+
+<textarea id="output"></textarea>
+
+</div>
+
+<script>
+
+function formatInterface(v){
+
+v=v.trim()
+
+if(/^\d{3}$/.test(v)){
+return v[0]+"/"+v[1]+"/"+v[2]
+}
+
+return v
+
+}
+
+function getInterface(){
+
+let olt=document.getElementById("olt").value
+let iface=formatInterface(document.getElementById("iface").value)
+
+if(olt==="c600"){
+return iface.replace(/\//g,"/")
+}
+
+return iface
+
+}
+
+function resetModem(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`configure terminal
+pon-onu-mng gpon_onu-${iface}:${onu}
+restore factory`
+
+}else{
+
+cmd=`configure terminal
+pon-onu-mng gpon-onu_${iface}:${onu}
+restore factory`
+
+}
+
+document.getElementById("output").value=cmd
+
+}
+
+function rebootModem(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`configure terminal
+pon-onu-mng gpon_onu-${iface}:${onu}
+reboot`
+
+}else{
+
+cmd=`configure terminal
+pon-onu-mng gpon-onu_${iface}:${onu}
+reboot`
+
+}
+
+output.value=cmd
+
+}
+
+function gantiModem(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let sn=document.getElementById("sn").value.toUpperCase()
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`configure terminal
+interface gpon_onu-${iface}:${onu}
+registration-method sn ${sn}`
+
+}else{
+
+cmd=`configure terminal
+interface gpon-onu_${iface}:${onu}
+registration-method sn ${sn}`
+
+}
+
+output.value=cmd
+
+}
+
+function cekRedamanPort(){
+
+let iface=getInterface()
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`sho pon power onu-rx gpon_olt-${iface}`
+
+}else{
+
+cmd=`show pon power onu-rx gpon-olt_${iface}`
+
+}
+
+output.value=cmd
+
+}
+
+function cekRedamanOnu(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`sho pon power attenuation gpon_onu-${iface}:${onu}`
+
+}else{
+
+cmd=`show pon power attenuation gpon-onu_${iface}:${onu}`
+
+}
+
+output.value=cmd
+
+}
+
+function cekStatusPort(){
+
+let iface=getInterface()
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`sho gpon onu state gpon_olt-${iface}`
+
+}else{
+
+cmd=`show gpon onu state gpon-olt_${iface}`
+
+}
+
+output.value=cmd
+
+}
+
+function hapusOnu(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`configure terminal
+interface gpon_olt-${iface}
+no onu ${onu}`
+
+}else{
+
+cmd=`configure terminal
+interface gpon-olt_${iface}
+no onu ${onu}`
+
+}
+
+output.value=cmd
+
+}
+
+function aktifkanPort(){
+
+let iface=getInterface()
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`configure terminal
+interface gpon_olt-${iface}
+no shutdown`
+
+}else{
+
+cmd=`configure terminal
+interface gpon-olt_${iface}
+no shutdown`
+
+}
+
+output.value=cmd
+
+}
+
+function cekInterface(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let olt=document.getElementById("olt").value
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`show run interface gpon_onu-${iface}:${onu}`
+
+}else{
+
+cmd=`show run interface gpon-onu_${iface}:${onu}`
+
+}
+
+output.value=cmd
+
+}
+
+function cekWan(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+
+output.value=`show onu running config gpon-onu_${iface}:${onu}`
+
+}
+
+function cekSn(){
+
+let sn=document.getElementById("sn").value.toUpperCase()
+
+output.value=`show gpon onu by sn ${sn}`
+
+}
+
+function cekIp(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+
+output.value=`show gpon remote-onu ip-host gpon-onu_${iface}:${onu}`
+
+}
+
+</script>
+
+</body>
+</html>
