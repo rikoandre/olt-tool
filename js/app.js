@@ -161,13 +161,16 @@ title: 'Oops...',
 text: 'Semua field wajib diisi!'
 })
 
-
 return false
 
 }
 
 return true
 
+}
+
+function goHome(){
+window.location.href="index.html"
 }
 
 
