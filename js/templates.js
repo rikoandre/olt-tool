@@ -2,7 +2,7 @@ const c600Template = (d)=>`conf t
 interface gpon_olt-${d.iface}
 onu ${d.onu} type ALL sn ${d.sn}
 exit
-interface gpon_ont-${d.iface}:${d.onu}
+interface gpon_onu-${d.iface}:${d.onu}
 name ${d.user}
 description ${d.desc}
 tcont 1 profile kusuma
@@ -15,7 +15,7 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
 service 1 gemport 1 vlan 134
 security-mgmt 1 state enable mode forward protocol web
 wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v134 host 1
-exit` 
+exit`
 
 
 const templates = {
