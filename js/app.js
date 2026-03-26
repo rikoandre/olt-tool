@@ -2,24 +2,17 @@ function formatInterface(iface){
 
 iface = iface.trim()
 
-// jika user mengetik 146
-if(/^\d{3}$/.test(iface)){
-return iface[0] + "/" + iface[1] + "/" + iface[2]
+let ifaceInput = document.getElementById("iface").value
+let iface = formatInterface(ifaceInput)
+
+if(!iface){
+Swal.fire({
+icon: 'error',
+title: 'Format Interface salah',
+text: 'Gunakan format seperti 1/4/6 atau 146'
+})
+return
 }
-
-// jika user mengetik 1/4/6
-iface = iface.replace(/[^0-9/]/g,'')
-
-let p = iface.split("/")
-
-if(p.length === 3){
-return p[0] + "/" + p[1] + "/" + p[2]
-}
-
-return iface
-
-}
-
 
 
 function autoDescription(user,desc){
