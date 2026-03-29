@@ -64,7 +64,7 @@ return
 
 let cmd = (olt==="c600")
 ? `show gpon onu state gpon_olt-${iface}`
-: `show gpon onu by interface gpon-olt_${iface}`
+: `sho gpon onu state gpon_olt-${iface}`
 
 document.getElementById("output").value = cmd
 }
