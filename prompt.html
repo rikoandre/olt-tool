@@ -98,6 +98,7 @@ margin-top:20px;
 <button onclick="cekWan()">CEK WAN ONU</button>
 <button onclick="cekSn()">CEK SN ONU</button>
 <button onclick="cekIp()">CEK IP ONU</button>
+<button onclick="cekDetailOnu()">CEK DETAIL PELANGGAN</button>
 <button class="home" onclick="goHome()">HOME</button>
 
 </div>
@@ -379,6 +380,37 @@ function goHome(){
 window.location.href="index.html"
 }
 
+function cekDetailOnu(){
+
+let iface=getInterface()
+let onu=document.getElementById("onu").value
+let olt=document.getElementById("olt").value
+
+if(!iface || !onu){
+Swal.fire({
+icon:'warning',
+title:'Oops...',
+text:'Interface dan ONU wajib diisi!'
+})
+return
+}
+
+let cmd=""
+
+if(olt==="c600"){
+
+cmd=`sho gpon onu detail-info gpon_onu-${iface}:${onu}`
+
+}else{
+
+cmd=`show gpon onu detail-info gpon-onu_${iface}:${onu}`
+
+}
+
+document.getElementById("output").value=cmd
+
+}
+  
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
