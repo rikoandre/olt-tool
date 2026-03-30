@@ -15,8 +15,102 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
 service 1 gemport 1 vlan 134
 security-mgmt 1 state enable mode forward protocol web
 wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v134 host 1
+wan 1 service tr069 internet
+tr069-mgmt 1 state unlock
+tr069-mgmt 1 acs http://acs.upaz.net.id:9999/ validate basic username acs@upaz.net.id password upaz8ersinar
+exit
+exit
+write`
+
+// bridge c600
+const c600BridgeTemplate = (d)=>`conf t
+interface gpon_olt-${d.iface}
+onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon_onu-${d.iface}:${d.onu}
+name ${d.user}
+description ${d.desc}
+tcont 1 profile kusuma
+tcont 2 profile kusuma
+gemport 1 tcont 1
+gemport 2 tcont 2
+exit
+interface vport-${d.iface}.${d.onu}:1
+service-port 1 user-vlan 128 vlan 128
+interface vport-${d.iface}.${d.onu}:2
+service-port 2 user-vlan 129 vlan 129
+exit
+pon-onu-mng gpon_onu-${d.iface}:${d.onu}
+service 1 gemport 1 vlan 128
+service 2 gemport 2 vlan 129
+vlan port eth_0/1 mode tag vlan 129
+vlan port eth_0/2 mode tag vlan 129
+vlan port eth_0/3 mode tag vlan 129
+vlan port eth_0/4 mode tag vlan 129
+security-mgmt 1 state enable mode forward protocol web
+wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v128 host 1
+exit
 exit`
 
+
+// ==========================
+// UNB BRIDGE (VLAN 100)
+// ==========================
+const unbBridgeTemplate = (d)=>`conf t
+interface gpon-olt_${d.iface}
+onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+name ${d.user}
+description ${d.desc}_bridge
+sn-bind enable sn
+tcont 1 profile kusuma
+gemport 1 tcont 1
+gemport 2 tcont 1
+service-port 1 vport 1 user-vlan 105 vlan 105
+service-port 2 vport 2 user-vlan 102 vlan 102
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+service 105 gemport 1 vlan 105
+service pppoe gemport 2 vlan 102
+vlan port eth_0/1 mode tag vlan 105
+vlan port eth_0/2 mode tag vlan 105
+vlan port eth_0/3 mode tag vlan 105
+vlan port eth_0/4 mode tag vlan 105
+wan-ip mode pppoe username ${d.user} password ${d.pass} vlan-profile pppoe_vlan102 host 1
+security-mgmt 1 state enable mode forward protocol web
+exit
+exit
+write`
+
+// ==========================
+// BOLO BRIDGE (1501)
+// ==========================
+const boloBridgeTemplate = (d)=>`conf t
+interface gpon-olt_${d.iface}
+onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+name ${d.user}
+description ${d.desc}
+sn-bind enable sn
+tcont 1  profile kusuma
+gemport 1 tcont 1
+gemport 2 tcont 1
+service-port 1 vport 1 user-vlan 1500 vlan 1500
+service-port 2 vport 2 user-vlan 1501 vlan 1501
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+service 1500 gemport 1 vlan 1500
+service pppoe gemport 2 vlan 1501
+vlan port eth_0/1 mode hybrid def-vlan 1500
+vlan port eth_0/2 mode hybrid def-vlan 1500
+vlan port eth_0/3 mode hybrid def-vlan 1500
+wan-ip mode pppoe username ${d.user} password ${d.pass} vlan-profile bolo host 1
+security-mgmt 1 state enable mode forward protocol web 
+exit
+exit
+write`
 
 const templates = {
 
