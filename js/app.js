@@ -26,17 +26,25 @@ return ""
 // ==========================
 // AUTO DESCRIPTION
 // ==========================
-function autoDescription(user,desc){
-if(desc.trim()==""){
-return user.toUpperCase()
+function autoDescription(user, desc){
+
+desc = desc.trim()
+
+// kalau kosong → pakai user saja
+if(!desc){
+return user
 }
+
+// jika sudah mengandung "-" → biarkan (biar tidak double)
+if(desc.includes("-")){
 return desc.toUpperCase()
 }
 
+// format default: ID - NAMA
+return `${user} - ${desc.toUpperCase()}`
+}
 
-// ==========================
-// CEK INDEX ONU
-// ==========================
+
 function cekIndexOnu(){
 
 let ifaceInput = document.getElementById("iface").value
@@ -62,11 +70,15 @@ text:'Gunakan format 1/4/6 atau 146'
 return
 }
 
-let cmd = (olt==="c600")
-? `sho gpon onu state gpon_olt-${iface}`
-: `sho gpon onu state gpon_olt-${iface}`
+let cmd=""
+if(olt==="c600"){
+cmd = `sho gpon onu state gpon_olt-${iface}`
+}else{
+cmd = `show gpon onu state gpon-olt_${iface}`
+}
 
 document.getElementById("output").value = cmd
+
 }
 
 
@@ -89,29 +101,70 @@ text:'Gunakan 1/4/6 atau 146'
 return
 }
 
-let onu=document.getElementById("onu").value.trim()
-let sn=document.getElementById("sn").value.trim().toUpperCase()
-let user=document.getElementById("user").value.trim()
-let pass=document.getElementById("pass").value.trim()
-let desc=document.getElementById("desc").value
+let onu = document.getElementById("onu").value.trim()
+let sn = document.getElementById("sn").value.trim().toUpperCase()
+let user = document.getElementById("user").value.trim()
+let pass = document.getElementById("pass").value.trim()
 
-desc = autoDescription(user,desc)
+let descInput = document.getElementById("desc").value.trim()
+let desc = autoDescription(user, descInput)
 
-let olt=document.getElementById("oltType").value
-let vlan=document.getElementById("vlan").value
+let olt = document.getElementById("oltType").value
+let vlan = document.getElementById("vlan").value
+let mode = document.getElementById("mode").value
 
-let data={iface,onu,sn,user,pass,desc}
+let data = { iface, onu, sn, user, pass, desc }
 
-let script=""
+let script = ""
 
-if(olt==="c600"){
-script = c600Template(data)
+// ==========================
+// C600
+// ==========================
+if(olt === "c600"){
+
+if(mode === "bridge"){
+script = c600BridgeTemplate(data)
 }else{
-script = templates[vlan](data)
+script = c600Template(data)
 }
 
+// ==========================
+// C300 / C320
+// ==========================
+}else{
+
+// ==========================
+// MODE BRIDGE C300/C320
+// ==========================
+if(mode === "bridge"){
+
+if(vlan === "100"){
+script = unbBridgeTemplate(data)
+
+}else if(vlan === "1501"){
+script = boloBridgeTemplate(data)
+
+}else{
+Swal.fire({
+icon:'warning',
+title:'Tidak tersedia',
+text:'Mode bridge untuk VLAN ini belum dibuat'
+})
+return
+}
+}else{
+
+// MODE NORMAL
+script = templates[vlan](data)
+
+}
+
+}
+
+// 🔥 WAJIB ADA
 document.getElementById("output").value = script
 
+// 🔥 ALERT SUCCESS
 Swal.fire({
 icon:'success',
 title:'Berhasil',
@@ -119,16 +172,41 @@ text:'Script berhasil dibuat!',
 timer:1200,
 showConfirmButton:false
 })
+
 }
 
-
 // ==========================
-// DISABLE VLAN C600
+// TOGGLE VLAN & MODE
 // ==========================
 function toggleVlan(){
-let olt=document.getElementById("oltType").value
-let vlan=document.getElementById("vlan")
-vlan.disabled = (olt==="c600")
+
+let olt = document.getElementById("oltType").value
+let vlanSelect = document.getElementById("vlan")
+let vlanVal = vlanSelect.value
+let mode = document.getElementById("mode")
+
+// ==========================
+// C600
+// ==========================
+if(olt === "c600"){
+vlanSelect.disabled = true
+mode.disabled = false
+return
+}
+
+// ==========================
+// C300 / C320
+// ==========================
+vlanSelect.disabled = false
+
+// VLAN yang support bridge
+if(vlanVal === "100" || vlanVal === "1501"){
+mode.disabled = false
+}else{
+mode.value = "pppoe"
+mode.disabled = true
+}
+
 }
 
 
@@ -216,4 +294,42 @@ document.getElementById("output").value=""
 // ==========================
 function goHome(){
 window.location.href="index.html"
+}
+
+// CREATE SECRET
+function generateSecret(){
+
+let user=document.getElementById("user").value.trim()
+let pass=document.getElementById("pass").value.trim()
+let desc=document.getElementById("desc").value.trim()
+let profile=document.getElementById("profile").value
+
+if(!user || !pass){
+Swal.fire({
+icon:'warning',
+title:'Oops...',
+text:'Username & Password wajib diisi!'
+})
+return
+}
+
+if(!desc){
+desc = user
+}
+
+// format comment USERNAME-NAMA
+let comment = `${user}-${desc.toUpperCase()}`
+
+let cmd = `/ppp secret add name=${user} password=${pass} service=pppoe profile="${profile}" comment="${comment}"`
+
+document.getElementById("output").value = cmd
+
+Swal.fire({
+icon:'success',
+title:'PPP Secret siap!',
+text:'Siap di copy ke Mikrotik',
+timer:1500,
+showConfirmButton:false
+})
+
 }
