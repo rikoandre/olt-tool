@@ -52,6 +52,30 @@ wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v128
 exit
 exit`
 
+// ==========================
+// UGR BRIDGE (1000)
+// ==========================
+const ugrBridgeTemplate = (d)=>`conf t
+interface gpon-olt_${d.iface}
+onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+name ${d.user}
+tcont 1 profile kusuma
+gemport 1 tcont 1
+gemport 2 tcont 1
+service-port 1 vport 1 user-vlan 1000 vlan 1000
+service-port 2 vport 2 user-vlan 200 vlan 200
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+service 1 gemport 1 vlan 1000
+service 2 gemport 2 vlan 200
+vlan port eth_0/1 mode tag vlan 200
+security-mgmt 1 state enable mode forward protocol web
+wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile v1000 host 1
+exit
+exit
+write`
 
 // ==========================
 // UNB BRIDGE (VLAN 100)
