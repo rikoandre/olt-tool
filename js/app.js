@@ -144,14 +144,18 @@ script = unbBridgeTemplate(data)
 }else if(vlan === "1501"){
 script = boloBridgeTemplate(data)
 
+}else if(vlan === "1000"){
+script = ugrBridgeTemplate(data)
+
 }else{
 Swal.fire({
 icon:'warning',
-title:'Tidak tersedia',
-text:'Mode bridge untuk VLAN ini belum dibuat'
+title:'Bridge tidak tersedia',
+text:'VLAN ini belum support mode bridge'
 })
 return
 }
+
 }else{
 
 // MODE NORMAL
@@ -200,7 +204,7 @@ return
 vlanSelect.disabled = false
 
 // VLAN yang support bridge
-if(vlanVal === "100" || vlanVal === "1501"){
+if(vlanVal === "100" || vlanVal === "1501" || vlanVal === "1000"){
 mode.disabled = false
 }else{
 mode.value = "pppoe"
