@@ -1,54 +1,184 @@
-body{
-font-family:Segoe UI;
-background:#f4f6f9;
-padding:30px;
+/* ============================================================
+   GLOBAL STYLES
+   ============================================================ */
+body { 
+    background: #f5f6fa; 
+    font-size: 14px; 
+    color: #2d3436;
 }
 
-.container{
-max-width:950px;
-margin:auto;
-background:white;
-padding:25px;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.08);
+/* ============================================================
+   COMPONENTS
+   ============================================================ */
+
+/* Card Styling */
+.card { 
+    border-radius: 15px; 
+    border: none; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-h1{
-text-align:center;
-margin-bottom:20px;
+/* Typography */
+h6 { 
+    font-weight: bold; 
+    color: #2d3436; 
+    margin-bottom: 15px; 
+    border-bottom: 2px solid #0984e3; 
+    display: inline-block; 
+    padding-bottom: 5px;
 }
 
-.form-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
+/* Buttons Grouping */
+.btn-group-vertical .btn { 
+    text-align: left; 
+    margin-bottom: 5px; 
+    border-radius: 5px !important; 
 }
 
-input,select{
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
+/* ============================================================
+   OUTPUT CONSOLE (TEXTAREA)
+   ============================================================ */
+textarea { 
+    font-family: 'Courier New', monospace; 
+    font-size: 14px; 
+    background: #1e272e !important; /* Latar belakang gelap solid */
+    color: #ffffff !important;      /* Teks Putih Bersih */
+    border: 1px solid #485460;
+    border-radius: 8px;
+    padding: 15px;
+    line-height: 1.5;
+    resize: none;                   /* Mencegah user merubah ukuran manual */
+    transition: all 0.3s ease;
 }
 
-button{
-padding:12px;
-border:none;
-border-radius:6px;
-font-weight:600;
-cursor:pointer;
-margin-top:10px;
+/* Fokus saat diklik */
+textarea:focus {
+    outline: none;
+    border-color: #0984e3;
+    box-shadow: 0 0 8px rgba(9, 132, 227, 0.3);
 }
 
-.generate{background:#16a34a;color:white;}
-.copy{background:#2563eb;color:white;}
-.clear{background:#ef4444;color:white;}
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.small-text {
+    font-size: 12px;
+}
 
-textarea{
-width:100%;
-height:360px;
-margin-top:15px;
-font-family:monospace;
-padding:10px;
-border-radius:6px;
-border:1px solid #ccc;
+/* Styling Ikon di Tombol */
+.btn-group-vertical .btn i {
+    width: 20px; /* Memastikan semua ikon punya lebar yang sama agar teks sejajar */
+    text-align: center;
+}
+
+/* Garis pemisah yang lebih halus */
+hr {
+    border-top: 1px solid #dfe6e9;
+    opacity: 1;
+}
+
+/* Efek saat tombol di-hover */
+.btn-sm:hover i {
+    transform: scale(1.2);
+    transition: transform 0.2s ease;
+}
+
+/* Menghilangkan border ganda di antara ikon dan input */
+.input-group-text {
+    border-right: none;
+    color: #636e72;
+    background-color: #f8f9fa !important;
+}
+
+.input-group .form-control, 
+.input-group .form-select {
+    border-left: none;
+}
+
+/* Fokus state untuk input group */
+.input-group:focus-within .input-group-text {
+    border-color: #0984e3;
+    color: #0984e3;
+}
+
+/* Ukuran ikon agar seragam */
+.input-group-text i {
+    width: 16px;
+    text-align: center;
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN (MEDIA QUERIES)
+   ============================================================ */
+
+/* 1. Tablet & HP (Layar di bawah 992px) */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 0;
+        left: -260px; /* Sembunyikan sidebar ke kiri */
+        overflow: hidden;
+    }
+
+    /* Paksa sidebar muncul saat class 'show' aktif (untuk mobile toggle) */
+    .sidebar.hide {
+        left: 0;
+        width: 260px;
+    }
+
+    .main-section {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    .main-section.expand {
+        left: 0;
+    }
+}
+
+/* 2. Handphone (Layar di bawah 576px) */
+@media (max-width: 576px) {
+    .content-wrapper {
+        padding: 15px !important; /* Kurangi padding agar tidak sempit */
+    }
+
+    .dashboard {
+        font-size: 16px !important; /* Perkecil teks judul navbar */
+    }
+
+    /* Buat kolom input, output, dan command menjadi full width */
+    .col-xl-3, .col-xl-6, .col-lg-4, .col-lg-8 {
+        width: 100%;
+    }
+
+    /* Sesuaikan tinggi textarea agar tidak terlalu memakan tempat di HP */
+    textarea {
+        height: 300px !important;
+        font-size: 12px; /* Perkecil font code sedikit */
+    }
+
+    /* Tombol aksi jadi lebih besar agar mudah ditekan jari */
+    .btn-sm {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    /* Sembunyikan teks Welcome di navbar untuk menghemat ruang */
+    .ms-auto .text-muted {
+        display: none;
+    }
+}
+
+/* 3. Penyesuaian Layout Grid agar fleksibel */
+.row {
+    --bs-gutter-x: 1rem; /* Jarak antar card */
+}
+
+.card {
+    margin-bottom: 1rem; /* Jarak bawah antar card saat menumpuk di mobile */
+}
+
+/* Memastikan gambar/logo tidak pecah atau keluar jalur */
+img {
+    max-width: 100%;
+    height: auto;
 }
