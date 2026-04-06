@@ -1,240 +1,224 @@
 // ==========================
-// FORMAT INTERFACE
+// 1. UTILITY FUNCTIONS
 // ==========================
-function formatInterface(v){
-v = v.trim()
 
-// support 146 → 1/4/6
-if(/^\d{3}$/.test(v)){
-return `${v[0]}/${v[1]}/${v[2]}`
+/**
+ * Format input interface: mendukung '146' -> '1/4/6' atau manual '1/4/6'
+ */
+function formatInterface(iface) {
+    iface = iface.trim();
+    
+    // Jika input hanya 3 angka (misal: 146)
+    if (/^\d{3}$/.test(iface)) {
+        return `${iface[0]}/${iface[1]}/${iface[2]}`;
+    }
+
+    // Membersihkan karakter selain angka dan slash
+    iface = iface.replace(/[^0-9/]/g, '');
+    let p = iface.split("/");
+
+    // Validasi format standar x/x/x
+    if (p.length === 3 && p.every(x => x !== "")) {
+        return p.join("/");
+    }
+    return "";
 }
 
-return v
-}
-
-function getInterface(){
-return formatInterface(document.getElementById("iface").value)
-}
-
-// ==========================
-// HELPER PATH
-// ==========================
-function getOnuPath(iface, onu, olt){
-return (olt === "c600")
-? `gpon_onu-${iface}:${onu}`
-: `gpon-onu_${iface}:${onu}`
-}
-
-function getOltPath(iface, olt){
-return (olt === "c600")
-? `gpon_olt-${iface}`
-: `gpon-olt_${iface}`
-}
-
-// ==========================
-// OUTPUT
-// ==========================
-function setOutput(cmd){
-document.getElementById("output").value = cmd
-}
-
-// ==========================
-// VALIDASI SEDERHANA
-// ==========================
-function validasiBasic(iface, onu){
-if(!iface || !onu){
-Swal.fire({
-icon:'warning',
-title:'Oops...',
-text:'Interface & ONU wajib diisi!'
-})
-return false
-}
-return true
+/**
+ * Otomatisasi Deskripsi Pelanggan
+ */
+function autoDescription(user, desc) {
+    desc = desc.trim();
+    if (!desc) return user.toUpperCase();
+    
+    // Hindari duplikasi tanda hubung
+    if (desc.includes("-")) return desc.toUpperCase();
+    
+    return `${user} - ${desc.toUpperCase()}`;
 }
 
 // ==========================
-// ACTION
+// 2. CORE LOGIC (GENERATOR)
 // ==========================
 
-// RESET MODEM
-function resetModem(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
+/**
+ * Validasi semua field input sebelum proses
+ */
+function validasiInput() {
+    const fields = [
+        { id: 'iface', name: 'Interface' },
+        { id: 'onu', name: 'ONU ID' },
+        { id: 'sn', name: 'Serial Number' },
+        { id: 'user', name: 'Username' },
+        { id: 'pass', name: 'Password' }
+    ];
 
-if(!validasiBasic(iface, onu)) return
-
-let cmd = `configure terminal
-pon-onu-mng ${getOnuPath(iface, onu, olt)}
-restore factory`
-
-setOutput(cmd)
+    for (let f of fields) {
+        if (!document.getElementById(f.id).value.trim()) {
+            Swal.fire("Oops!", `${f.name} wajib diisi!`, "warning");
+            return false;
+        }
+    }
+    return true;
 }
 
-// REBOOT MODEM
-function rebootModem(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
+/**
+ * Fungsi Utama untuk Generate Script OLT
+ */
+function generate() {
+    if (!validasiInput()) return;
 
-if(!validasiBasic(iface, onu)) return
+    const ifaceRaw = document.getElementById("iface").value;
+    const iface = formatInterface(ifaceRaw);
 
-let cmd = `configure terminal
-pon-onu-mng ${getOnuPath(iface, onu, olt)}
-reboot`
+    if (!iface) {
+        Swal.fire("Format Salah", "Gunakan format 1/4/6 atau 146", "error");
+        return;
+    }
 
-setOutput(cmd)
-}
+    // Mengambil data dari form
+    const data = {
+        iface: iface,
+        onu: document.getElementById("onu").value.trim(),
+        sn: document.getElementById("sn").value.trim().toUpperCase(),
+        user: document.getElementById("user").value.trim(),
+        pass: document.getElementById("pass").value.trim(),
+        desc: autoDescription(document.getElementById("user").value, document.getElementById("desc").value)
+    };
 
-// GANTI MODEM
-function gantiModem(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let sn = document.getElementById("sn").value.toUpperCase()
-let olt = document.getElementById("olt").value
+    const olt = document.getElementById("oltType").value;
+    const vlan = document.getElementById("vlan").value;
+    const mode = document.getElementById("mode").value;
 
-if(!validasiBasic(iface, onu)) return
+    let script = "";
 
-let cmd = `configure terminal
-interface ${getOnuPath(iface, onu, olt)}
-registration-method sn ${sn}`
+    try {
+        if (olt === "c600") {
+            // Logic C600 (Menggunakan template dari templates.js)
+            script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
+        } else {
+            // Logic C300 / C320
+            if (mode === "bridge") {
+                if (vlan === "100") script = unbBridgeTemplate(data);
+                else if (vlan === "1501") script = boloBridgeTemplate(data);
+                else if (vlan === "1000") script = ugrBridgeTemplate(data);
+                else {
+                    Swal.fire("Info", "VLAN ini belum mendukung mode bridge otomatis.", "info");
+                    return;
+                }
+            } else {
+                // Mode PPPoE (Normal) mengambil dari object 'templates' di templates.js
+                script = templates[vlan] ? templates[vlan](data) : "Template VLAN tidak ditemukan.";
+            }
+        }
 
-setOutput(cmd)
-}
+        document.getElementById("output").value = script;
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Script berhasil dibuat', timer: 1000, showConfirmButton: false });
 
-// CEK REDAMAN PORT
-function cekRedamanPort(){
-let iface = getInterface()
-let olt = document.getElementById("olt").value
-
-let cmd = (olt === "c600")
-? `sho pon power onu-rx ${getOltPath(iface, olt)}`
-: `show pon power onu-rx ${getOltPath(iface, olt)}`
-
-setOutput(cmd)
-}
-
-// CEK REDAMAN ONU
-function cekRedamanOnu(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
-
-if(!validasiBasic(iface, onu)) return
-
-let cmd = (olt === "c600")
-? `sho pon power attenuation ${getOnuPath(iface, onu, olt)}`
-: `show pon power attenuation ${getOnuPath(iface, onu, olt)}`
-
-setOutput(cmd)
-}
-
-// CEK STATUS PORT
-function cekStatusPort(){
-let iface = getInterface()
-let olt = document.getElementById("olt").value
-
-let cmd = (olt === "c600")
-? `sho gpon onu state ${getOltPath(iface, olt)}`
-: `show gpon onu state ${getOltPath(iface, olt)}`
-
-setOutput(cmd)
-}
-
-// HAPUS ONU
-function hapusOnu(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
-
-if(!validasiBasic(iface, onu)) return
-
-let cmd = `configure terminal
-interface ${getOltPath(iface, olt)}
-no onu ${onu}`
-
-setOutput(cmd)
-}
-
-// AKTIFKAN PORT
-function aktifkanPort(){
-let iface = getInterface()
-let olt = document.getElementById("olt").value
-
-let cmd = `configure terminal
-interface ${getOltPath(iface, olt)}
-no shutdown`
-
-setOutput(cmd)
-}
-
-// CEK INTERFACE
-function cekInterface(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
-
-if(!validasiBasic(iface, onu)) return
-
-let cmd = `show run interface ${getOnuPath(iface, onu, olt)}`
-
-setOutput(cmd)
-}
-
-// CEK DETAIL ONU
-function cekDetailOnu(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
-
-if(!validasiBasic(iface, onu)) return
-
-let cmd = (olt === "c600")
-? `sho gpon onu detail-info ${getOnuPath(iface, onu, olt)}`
-: `show gpon onu detail-info ${getOnuPath(iface, onu, olt)}`
-
-setOutput(cmd)
-}
-
-// CEK WAN CONFIG
-function cekWan(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
-
-if(!validasiBasic(iface, onu)) return
-
-let cmd = `show onu running config ${getOnuPath(iface, onu, olt)}`
-setOutput(cmd)
-}
-
-// CEK SN
-function cekSn(){
-let sn = document.getElementById("sn").value.toUpperCase()
-setOutput(`show gpon onu by sn ${sn}`)
-}
-
-// CEK IP
-function cekIp(){
-let iface = getInterface()
-let onu = document.getElementById("onu").value
-let olt = document.getElementById("olt").value
-
-if(!validasiBasic(iface, onu)) return
-
-let base = getOnuPath(iface, onu, olt)
-
-let cmd = (olt === "c600")
-? `show gpon remote-onu wan-ip ${base}`
-: `show gpon remote-onu ip-host ${base}`
-
-setOutput(cmd)
+    } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "Terjadi kesalahan saat memanggil template. Pastikan templates.js sudah ter-load.", "error");
+    }
 }
 
 // ==========================
-// NAVIGASI
+// 3. UI HELPER FUNCTIONS
 // ==========================
-function goHome(){
-window.location.href="index.html"
+
+function toggleVlan() {
+    const olt = document.getElementById("oltType").value;
+    const vlanSelect = document.getElementById("vlan");
+    const modeSelect = document.getElementById("mode");
+    const vlanVal = vlanSelect.value;
+
+    // Ambil elemen option VLAN 134 (UNR)
+    // Pastikan di HTML Anda, <option> untuk 134 memiliki value="134"
+    const vlan134Option = vlanSelect.querySelector('option[value="134"]');
+
+    if (olt === "c600") {
+        // --- LOGIC C600 ---
+        vlanSelect.disabled = true; 
+        modeSelect.disabled = false;
+        
+        // Tampilkan kembali VLAN 134 jika sebelumnya disembunyikan
+        if (vlan134Option) vlan134Option.style.display = "block";
+        
+        // Paksa pilih ke 134 karena C600 di template Anda menggunakan VLAN 134
+        vlanSelect.value = "134"; 
+        
+    } else {
+        // --- LOGIC C300 / C320 ---
+        vlanSelect.disabled = false;
+
+        // Sembunyikan VLAN 134 karena ini khusus C600
+        if (vlan134Option) {
+            vlan134Option.style.display = "none";
+            
+            // Jika saat ini sedang terpilih 134, pindahkan ke VLAN lain (misal 110 atau pertama)
+            if (vlanSelect.value === "134") {
+                vlanSelect.value = vlanSelect.options[0].value === "134" 
+                                   ? vlanSelect.options[1].value 
+                                   : vlanSelect.options[0].value;
+            }
+        }
+
+        // Logic Bridge Support
+        const supportBridge = ["100", "1501", "1000"];
+        if (supportBridge.includes(vlanSelect.value)) {
+            modeSelect.disabled = false;
+        } else {
+            modeSelect.value = "pppoe";
+            modeSelect.disabled = true;
+        }
+    }
+}
+
+function copyScript() {
+    const output = document.getElementById("output");
+    if (!output.value) {
+        Swal.fire("Kosong", "Tidak ada script untuk disalin", "warning");
+        return;
+    }
+    output.select();
+    document.execCommand("copy");
+    Swal.fire({ icon: 'success', title: 'Copied!', timer: 800, showConfirmButton: false });
+}
+
+function clearForm() {
+    Swal.fire({
+        title: 'Bersihkan form?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.querySelectorAll("input").forEach(i => i.value = "");
+            document.getElementById("output").value = "";
+        }
+    });
+}
+
+/**
+ * Generate Secret untuk Mikrotik
+ */
+function generateSecret() {
+    const user = document.getElementById("user").value.trim();
+    const pass = document.getElementById("pass").value.trim();
+    const desc = document.getElementById("desc").value.trim() || user;
+    const profile = document.getElementById("profile") ? document.getElementById("profile").value : "default";
+
+    if (!user || !pass) {
+        Swal.fire("Gagal", "User & Password wajib diisi!", "warning");
+        return;
+    }
+
+    const comment = `${user}-${desc.toUpperCase()}`;
+    const cmd = `/ppp secret add name=${user} password=${pass} service=pppoe profile="${profile}" comment="${comment}"`;
+
+    document.getElementById("output").value = cmd;
+    Swal.fire("Ready!", "PPP Secret siap disalin ke Mikrotik", "success");
+}
+
+function goHome() {
+    window.location.href = "index.html";
 }
