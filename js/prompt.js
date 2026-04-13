@@ -49,8 +49,8 @@ function rebootModem() {
     let cmd = `configure terminal
 pon-onu-mng ${getOnuPath(d.iface, d.onu, d.olt)}
   reboot
-  yes
-  exit
+yes
+exit
 exit`;
     document.getElementById("output").value = cmd;
 }
