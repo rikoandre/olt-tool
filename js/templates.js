@@ -88,6 +88,34 @@ exit
 exit
 write`;
 
+// UCD Bridge Template
+
+const ucdBridgeTemplate = (d) => `conf t
+interface gpon-olt_${d.iface}
+onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+name ${d.user}
+description ${d.desc}
+sn-bind enable sn
+tcont 1 profile kusuma
+gemport 1 tcont 1
+gemport 2 tcont 1
+service-port 1 vport 1 user-vlan 514 vlan 514
+service-port 2 vport 2 user-vlan 511 vlan 511
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+service 514 gemport 1 vlan 514
+service pppoe gemport 2 vlan 511
+vlan port eth_0/1 mode tag vlan 514
+vlan port eth_0/2 mode tag vlan 514
+vlan port eth_0/3 mode tag vlan 514
+wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile 511 host 1
+security-mgmt 1 state enable mode forward protocol web
+exit
+exit
+write`;
+
 const unbBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
