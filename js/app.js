@@ -99,10 +99,16 @@ function generate() {
         } else {
             // Logic C300 / C320
             if (mode === "bridge") {
-                if (vlan === "100") script = unbBridgeTemplate(data);
-                else if (vlan === "1501") script = boloBridgeTemplate(data);
-                else if (vlan === "1000") script = ugrBridgeTemplate(data);
-                else {
+                if (vlan === "100") {
+                    script = unbBridgeTemplate(data);
+                } else if (vlan === "1501") {
+                    script = boloBridgeTemplate(data);
+                } else if (vlan === "1000") {
+                    script = ugrBridgeTemplate(data);
+                } else if (vlan === "511") {
+                    // Penambahan Template UCD Bridge
+                    script = ucdBridgeTemplate(data);
+                } else {
                     Swal.fire("Info", "VLAN ini belum mendukung mode bridge otomatis.", "info");
                     return;
                 }
@@ -113,11 +119,17 @@ function generate() {
         }
 
         document.getElementById("output").value = script;
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Script berhasil dibuat', timer: 1000, showConfirmButton: false });
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'Berhasil!', 
+            text: 'Script berhasil dibuat', 
+            timer: 1000, 
+            showConfirmButton: false 
+        });
 
     } catch (error) {
         console.error(error);
-        Swal.fire("Error", "Terjadi kesalahan saat memanggil template. Pastikan templates.js sudah ter-load.", "error");
+        Swal.fire("Error", "Terjadi kesalahan saat memanggil template. Pastikan templates.js sudah ter-load dan fungsi ucdBridgeTemplate tersedia.", "error");
     }
 }
 
