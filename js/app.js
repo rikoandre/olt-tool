@@ -175,7 +175,7 @@ function toggleVlan() {
         }
 
         // Logic Bridge Support
-        const supportBridge = ["100", "1501", "1000"];
+        const supportBridge = ["100", "1501", "1000", "511"];
         if (supportBridge.includes(vlanSelect.value)) {
             modeSelect.disabled = false;
         } else {
