@@ -326,22 +326,22 @@ write`,
     // CADAR
     "511": (d) => `conf t
 interface gpon-olt_${d.iface}
-  onu ${d.onu} type ALL sn ${d.sn}
+ onu ${d.onu} type ALL sn ${d.sn}
 exit
 interface gpon-onu_${d.iface}:${d.onu}
-  name ${d.user}
-  description ${d.desc}
-  sn-bind enable sn
-  tcont 1 name PPPOE profile kusuma
-  gemport 1 name PPPOE tcont 1
-  switchport mode hybrid vport 1
-  service-port 1 vport 1 user-vlan 511 vlan 511
+ name ${d.user}
+ description ${d.desc}
+ sn-bind enable sn
+ tcont 1 name PPPOE profile kusuma
+ gemport 1 name PPPOE tcont 1
+ switchport mode hybrid vport 1
+ service-port 1 vport 1 user-vlan 511 vlan 511
 exit
 pon-onu-mng gpon-onu_${d.iface}:${d.onu}
-  service ServiceName gemport 1 cos 0 vlan 511
-  wan-ip mode pppoe username ${d.user} password ${d.pass} vlan-profile vlan511 host 1
-  wan-ip 1 ping-response enable traceroute-response enable
-  security-mgmt 212 state enable mode forward protocol web
+ service ServiceName gemport 1 cos 0 vlan 511
+ wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile 511 host 1
+ wan-ip 1 ping-response enable traceroute-response enable
+ security-mgmt 212 state enable mode forward protocol web
 exit
 exit
 write`,
