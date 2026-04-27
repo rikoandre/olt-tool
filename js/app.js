@@ -42,32 +42,80 @@ function autoDescription(user, desc) {
 // ==========================
 
 /**
- * Validasi semua field input sebelum proses
+ * Validasi Input yang Fleksibel
+ * @param {boolean} isSecret - Jika true, hanya validasi user, pass, dan paket.
  */
-function validasiInput() {
-    const fields = [
-        { id: 'iface', name: 'Interface' },
-        { id: 'onu', name: 'ONU ID' },
-        { id: 'sn', name: 'Serial Number' },
-        { id: 'user', name: 'Username' },
-        { id: 'pass', name: 'Password' }
-    ];
+function validasiInput(isSecret = false) {
+    // 1. Tentukan field mana yang wajib berdasarkan konteks
+    let fields = [];
+    
+    if (isSecret) {
+        fields = [
+            { id: 'user', name: 'Username' },
+            { id: 'pass', name: 'Password' },
+            { id: 'profile', name: 'Paket/Profile' }
+        ];
+    } else {
+        fields = [
+            { id: 'iface', name: 'Interface' },
+            { id: 'onu', name: 'ONU ID' },
+            { id: 'sn', name: 'Serial Number' },
+            { id: 'user', name: 'Username' },
+            { id: 'pass', name: 'Password' }
+        ];
+    }
 
+    // 2. Loop cek kekosongan
     for (let f of fields) {
-        if (!document.getElementById(f.id).value.trim()) {
+        const el = document.getElementById(f.id);
+        if (!el || !el.value.trim()) {
             Swal.fire("Oops!", `${f.name} wajib diisi!`, "warning");
             return false;
         }
     }
+
+    // 3. Validasi spesifik: Username wajib 10 digit angka
+    const userValue = document.getElementById("user").value.trim();
+    const regexAngka = /^[0-9]{10}$/; 
+    if (!regexAngka.test(userValue)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Username Tidak Valid',
+            text: 'Username wajib berupa 10 digit angka!',
+            confirmButtonColor: '#d33'
+        });
+        return false;
+    }
+
+    // --- TAMBAHAN VALIDASI KHUSUS OLT (Hanya jika bukan isSecret) ---
+    if (!isSecret) {
+        // 4. Validasi ONU ID: Maksimal 128
+        const onuValue = parseInt(document.getElementById("onu").value.trim());
+        if (isNaN(onuValue) || onuValue < 1 || onuValue > 128) {
+            Swal.fire("Batas ONU ID", "ONU ID harus berupa angka antara 1 sampai 128!", "warning");
+            return false;
+        }
+
+        // 5. Validasi Serial Number: Minimal 8 karakter
+        const snValue = document.getElementById("sn").value.trim();
+        if (snValue.length < 8) {
+            Swal.fire("SN Terlalu Pendek", "Serial Number minimal harus 8 karakter!", "warning");
+            return false;
+        }
+    }
+
     return true;
 }
+
 
 /**
  * Fungsi Utama untuk Generate Script OLT
  */
 function generate() {
-    if (!validasiInput()) return;
+    // 1. Jalankan validasi (Cek kekosongan & format 10 digit username)
+    if (!validasiInput(false)) return;
 
+    // 2. Ambil dan format Interface
     const ifaceRaw = document.getElementById("iface").value;
     const iface = formatInterface(ifaceRaw);
 
@@ -76,7 +124,7 @@ function generate() {
         return;
     }
 
-    // Mengambil data dari form
+    // 3. Mengambil data dari form untuk dikirim ke template
     const data = {
         iface: iface,
         onu: document.getElementById("onu").value.trim(),
@@ -93,12 +141,14 @@ function generate() {
     let script = "";
 
     try {
+        // --- LOGIC PEMILIHAN TEMPLATE ---
         if (olt === "c600") {
-            // Logic C600 (Menggunakan template dari templates.js)
+            // Logic khusus ZTE C600
             script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
         } else {
-            // Logic C300 / C320
+            // Logic khusus ZTE C300 / C320
             if (mode === "bridge") {
+                // Seleksi Template Bridge berdasarkan VLAN
                 if (vlan === "100") {
                     script = unbBridgeTemplate(data);
                 } else if (vlan === "1501") {
@@ -106,7 +156,6 @@ function generate() {
                 } else if (vlan === "1000") {
                     script = ugrBridgeTemplate(data);
                 } else if (vlan === "511") {
-                    // Penambahan Template UCD Bridge
                     script = ucdBridgeTemplate(data);
                 } else {
                     Swal.fire("Info", "VLAN ini belum mendukung mode bridge otomatis.", "info");
@@ -118,7 +167,10 @@ function generate() {
             }
         }
 
+        // 4. Output Hasil ke Textarea
         document.getElementById("output").value = script;
+
+        // 5. Notifikasi Berhasil
         Swal.fire({ 
             icon: 'success', 
             title: 'Berhasil!', 
@@ -129,7 +181,11 @@ function generate() {
 
     } catch (error) {
         console.error(error);
-        Swal.fire("Error", "Terjadi kesalahan saat memanggil template. Pastikan templates.js sudah ter-load dan fungsi ucdBridgeTemplate tersedia.", "error");
+        Swal.fire({
+            icon: 'error',
+            title: 'Template Error',
+            text: 'Gagal memanggil template. Pastikan templates.js sudah ter-load dengan benar.'
+        });
     }
 }
 
@@ -193,7 +249,7 @@ function copyScript() {
     }
     output.select();
     document.execCommand("copy");
-    Swal.fire({ icon: 'success', title: 'Copied!', timer: 800, showConfirmButton: false });
+    Swal.fire({ icon: 'success', title: 'Copied!', timer: 500, showConfirmButton: false });
 }
 
 function clearForm() {
@@ -211,26 +267,48 @@ function clearForm() {
 }
 
 /**
- * Generate Secret untuk Mikrotik
+ * Fungsi Terpadu untuk Generate Script PPPoE Secret Mikrotik
+ * Hanya mewajibkan Username, Password, dan Profile.
  */
 function generateSecret() {
+    // 1. Jalankan Validasi khusus Secret (isSecret = true)
+    // Ini akan mengecek apakah User, Pass, dan Profile sudah terisi & User sesuai 10 digit angka
+    if (!validasiInput(true)) return;
+
+    // 2. Ambil data dari form
     const user = document.getElementById("user").value.trim();
     const pass = document.getElementById("pass").value.trim();
-    const desc = document.getElementById("desc").value.trim() || user;
-    const profile = document.getElementById("profile") ? document.getElementById("profile").value : "default";
+    const rawDesc = document.getElementById("desc") ? document.getElementById("desc").value.trim() : "";
+    
+    // Ambil nilai profile (Paket), pastikan elemen ada
+    const profileElem = document.getElementById("profile");
+    const profile = profileElem ? profileElem.value : "default";
 
-    if (!user || !pass) {
-        Swal.fire("Gagal", "User & Password wajib diisi!", "warning");
-        return;
+    // 3. Logic Comment/Deskripsi (Opsional)
+    // Jika kolom deskripsi diisi, tampilkan di comment Mikrotik. Jika kosong, script tetap jalan.
+    let commentPart = "";
+    if (rawDesc) {
+        const commentValue = `${user} - ${rawDesc.toUpperCase()}`;
+        commentPart = ` comment="${commentValue}"`;
     }
 
-    const comment = `${user}-${desc.toUpperCase()}`;
-    const cmd = `/ppp secret add name=${user} password=${pass} service=pppoe profile="${profile}" comment="${comment}"`;
+    // 4. Konstruksi Perintah CLI Mikrotik
+    // script utama (User, Pass, Profile) + part comment (jika ada)
+    const script = `/ppp secret add name="${user}" password="${pass}" service=pppoe profile="${profile}"${commentPart}`;
 
-    document.getElementById("output").value = cmd;
-    Swal.fire("Ready!", "PPP Secret siap disalin ke Mikrotik", "success");
-}
+    // 5. Tampilkan Hasil ke Output Area
+    const outputArea = document.getElementById("output");
+    if (outputArea) {
+        outputArea.value = script;
+    }
 
-function goHome() {
-    window.location.href = "index.html";
+    // 6. Notifikasi Visual menggunakan SweetAlert2
+    Swal.fire({
+        icon: 'success',
+        title: 'Secret Mikrotik Siap!',
+        text: `User: ${user} | Profil: ${profile}`,
+        timer: 1500,
+        showConfirmButton: false,
+        position: 'center'
+    });
 }
