@@ -116,6 +116,8 @@ exit
 exit
 write`;
 
+
+// UNB BRIDGE
 const unbBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -143,6 +145,7 @@ exit
 exit
 write`;
 
+// BOLO BRIDGE
 const boloBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
