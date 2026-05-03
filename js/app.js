@@ -312,3 +312,54 @@ function generateSecret() {
         position: 'center'
     });
 }
+
+/**
+/**
+ * Logika untuk membedah teks copypaste (Username|Nama)
+ * Membersihkan spasi, tab, dan simbol yang tidak diinginkan.
+ */
+function handlePaste(event) {
+    // Ambil teks dari clipboard
+    let paste = (event.clipboardData || window.clipboardData).getData('text');
+    
+    // RegEx Delimiter: Mendukung |, :, -, dan Tab (\t)
+    const delimiters = /[|:\t-]/;
+
+    if (delimiters.test(paste)) {
+        // Hentikan proses paste default
+        event.preventDefault();
+
+        // 1. Bagi teks berdasarkan delimiter
+        let parts = paste.split(delimiters);
+        
+        // 2. Ambil ID Pelanggan (Hanya ambil angka, hapus spasi/simbol tersembunyi)
+        let idPel = parts[0].replace(/\D/g, '').substring(0, 10);
+        
+        // 3. Ambil Nama Pelanggan (Bersihkan spasi di awal/akhir dan spasi ganda di tengah)
+        let namaPel = "";
+        if (parts[1]) {
+            namaPel = parts[1]
+                .trim()                 // Hapus spasi di depan & belakang
+                .replace(/\s+/g, ' ')   // Ubah tab atau spasi ganda menjadi satu spasi saja
+                .toUpperCase();         // Ubah ke HURUF BESAR
+        }
+
+        // 4. Masukkan ke kolom masing-masing
+        document.getElementById("user").value = idPel;
+        
+        const descInput = document.getElementById("desc");
+        if (descInput && namaPel) {
+            descInput.value = namaPel;
+            
+            // Notifikasi Toast Sukses
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'ID & Nama otomatis terpisah!',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+    }
+}
