@@ -363,3 +363,34 @@ function handlePaste(event) {
         }
     }
 }
+
+
+/**
+ * Generate Password berdasarkan tanggal hari ini (DDMMYY)
+ */
+function generateDatePass() {
+    const d = new Date();
+    
+    // Ambil Tanggal, Bulan (+1 karena index mulai dari 0), dan Tahun
+    // padStart(2, '0') memastikan jika angka satuan tetap dapet nol di depan (contoh: 05)
+    const date = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).substring(2); // Ambil 2 digit terakhir tahun
+
+    const passOtomatis = `${date}${month}${year}`;
+    
+    const passInput = document.getElementById("pass");
+    if (passInput) {
+        passInput.value = passOtomatis;
+        
+        // Notifikasi Toast Kecil
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: `Password diatur ke: ${passOtomatis}`,
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+}
