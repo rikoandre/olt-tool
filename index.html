@@ -84,13 +84,14 @@
         </div>
 
         <div class="mb-2">
-            <div class="input-group input-group-sm mb-2">
+             <div class="input-group input-group-sm mb-2">
                 <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
                 <input id="user" 
-                    class="form-control" 
-                    placeholder="Username (10 Digit Angka)" 
-                    maxlength="10" 
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        class="form-control" 
+                        placeholder="Username (10 Digit Angka)" 
+                         maxlength="10" 
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                        onpaste="handlePaste(event)"> <!-- Tambahkan ini -->
             </div>
             <div class="input-group input-group-sm mb-2">
                 <span class="input-group-text bg-light"><i class="fas fa-key"></i></span>
