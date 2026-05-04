@@ -72,6 +72,7 @@ interface gpon-olt_${d.iface}
 exit
 interface gpon-onu_${d.iface}:${d.onu}
   name ${d.user}
+  description ${d.desc}
   tcont 1 profile kusuma
   gemport 1 tcont 1
   gemport 2 tcont 1
@@ -87,8 +88,6 @@ pon-onu-mng gpon-onu_${d.iface}:${d.onu}
 exit
 exit
 write`;
-
-// UCD Bridge Template
 
 const ucdBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
@@ -116,8 +115,6 @@ exit
 exit
 write`;
 
-
-// UNB BRIDGE
 const unbBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -145,7 +142,6 @@ exit
 exit
 write`;
 
-// BOLO BRIDGE
 const boloBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -177,6 +173,26 @@ write`;
 // ==========================================
 
 const templates = {
+    // UNR-RJW / VLAN 1001
+    "1001": (d) => `conf t
+interface gpon-olt_${d.iface}
+  onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+  name ${d.user}
+  description ${d.desc}
+  tcont 1 profile kusuma
+  gemport 1 tcont 1
+  service-port 1 vport 1 user-vlan 1001 vlan 1001
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+  service 1 gemport 1 vlan 1001
+  security-mgmt 1 state enable mode forward protocol web
+  wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile v1001 host 1
+exit
+exit
+write`,
+
     // UNR / VLAN 134
     "134": (d) => `conf t
 interface gpon-olt_${d.iface}
@@ -197,7 +213,7 @@ exit
 exit
 write`,
 
-    // UHO
+    // UHO / VLAN 110
     "110": (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -217,7 +233,7 @@ exit
 exit
 write`,
 
-    // UBL
+    // UBL / VLAN 1002
     "1002": (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -237,7 +253,7 @@ exit
 exit
 write`,
 
-    // UGR
+    // UGR / VLAN 1000
     "1000": (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -257,7 +273,7 @@ exit
 exit
 write`,
 
-    // UNB
+    // UNB / VLAN 100
     "100": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -280,7 +296,7 @@ exit
 exit
 write`,
 
-    // ALQORIYAH
+    // ALQORIYAH / VLAN 1600
     "1600": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -303,7 +319,7 @@ exit
 exit
 write`,
 
-    // BOLO
+    // BOLO / VLAN 1501
     "1501": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -326,7 +342,7 @@ exit
 exit
 write`,
 
-    // CADAR
+    // CADAR / VLAN 511
     "511": (d) => `conf t
 interface gpon-olt_${d.iface}
  onu ${d.onu} type ALL sn ${d.sn}
@@ -349,7 +365,7 @@ exit
 exit
 write`,
 
-    // ALNET
+    // ALNET / VLAN 602
     "602": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL-ONT sn ${d.sn}
@@ -372,7 +388,7 @@ exit
 exit
 write`,
 
-    // LEXXA
+    // LEXXA / VLAN 903
     "903": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL-ONT sn ${d.sn}
