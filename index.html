@@ -10,203 +10,267 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="olt-app">
 
-<div class="container-fluid p-3">
-    <div class="row g-3">
-        <div class="col-lg-3">
-    <div class="card p-3 shadow-sm h-100">
-        <div class="d-flex align-items-center mb-3 pb-2 border-bottom-custom">
-            <h6  class="m-0 text-uppercase">Input Config</h6>
-        </div>
-
-        <div class="mb-2">
-            <label class="form-label small fw-bold text-muted">OLT Type</label>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light"><i class="fas fa-server"></i></span>
-                <select id="oltType" class="form-select" onchange="toggleVlan()">
-                    <option value="c600">ZTE C600</option>
-                    <option value="c320">ZTE C320/C300</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="mb-2">
-            <label class="form-label small fw-bold text-muted">VLAN Profile</label>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light"><i class="fas fa-network-wired"></i></span>
-                <select id="vlan" class="form-select" onchange="toggleVlan()">
-                    <option value="134">VLAN 134 (UNR)</option>
-                    <option value="100">VLAN 100 (UNB)</option>
-                    <option value="1000">VLAN 1000 (UGR)</option>
-                    <option value="110">VLAN 110 (UHO)</option>
-                    <option value="511">VLAN 511 (UCD)</option>
-                    <option value="1501">VLAN 1501 (BOLO)</option>
-                    <option value="1600">VLAN 1600 (AL-QORIYAH)</option>
-                    <option value="602">VLAN 602 (ALNET)</option>
-                    <option value="903">VLAN 903 (LEXXA)</option>
-                    <option value="1002">VLAN 1002 (UBL)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light"><i class="fas fa-exchange-alt"></i></span>
-                <select id="mode" class="form-select">
-                    <option value="pppoe">Mode PPPoE</option>
-                    <option value="bridge">Mode Bridge</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="mb-2">
-            <label class="form-label small fw-bold text-muted">Interface (e.g 1/4/2)</label>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light"><i class="fas fa-ethernet"></i></span>
-                <input id="iface" class="form-control" placeholder="1/4/2 atau 142">
-            </div>
-        </div>
-
-        <div class="row g-2 mb-2">
-            <div class="col-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light"><i class="fas fa-fingerprint"></i></span>
-                    <input id="onu" class="form-control" placeholder="ONU ID">
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>OLT Config Generator</h1>
+                        <span>Professional Network Configuration Tool</span>
+                    </div>
                 </div>
-            </div>
-            <div class="col-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light"><i class="fas fa-barcode"></i></span>
-                    <input id="sn" class="form-control" placeholder="SN">
+                <div class="status-badge">
+                    <span class="pulse"></span>
+                    System Ready
                 </div>
             </div>
         </div>
+    </header>
 
-        <div class="mb-2">
-             <div class="input-group input-group-sm mb-2">
-                <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
-                <input id="user" 
-                        class="form-control" 
-                        placeholder="Username (10 Digit Angka)" 
-                         maxlength="10" 
-                        oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-                        onpaste="handlePaste(event)"> <!-- Tambahkan ini -->
+    <div class="container-fluid p-3 main-container">
+        <div class="row g-3">
+            
+            <!-- LEFT PANEL: Input Config -->
+            <div class="col-lg-3">
+                <div class="card p-3 shadow-sm h-100 olt-panel input-panel">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom-custom panel-header">
+                        <i class="fas fa-sliders-h panel-icon"></i>
+                        <h6 class="m-0 text-uppercase">Input Config</h6>
+                    </div>
+
+                    <div class="mb-2 form-group">
+                        <label class="form-label small fw-bold text-muted">OLT Type</label>
+                        <div class="input-group input-group-sm olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-server"></i></span>
+                            <select id="oltType" class="form-select" onchange="toggleVlan()">
+                                <option value="c600">ZTE C600</option>
+                                <option value="c320">ZTE C320/C300</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2 form-group">
+                        <label class="form-label small fw-bold text-muted">VLAN Profile</label>
+                        <div class="input-group input-group-sm olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-network-wired"></i></span>
+                            <select id="vlan" class="form-select" onchange="toggleVlan()">
+                                <option value="134">VLAN 134 (UNR)</option>
+                                <option value="1001">VLAN 1001 (UNR-RJW)</option>
+                                <option value="100">VLAN 100 (UNB)</option>
+                                <option value="1000">VLAN 1000 (UGR)</option>
+                                <option value="110">VLAN 110 (UHO)</option>
+                                <option value="511">VLAN 511 (UCD)</option>
+                                <option value="1501">VLAN 1501 (BOLO)</option>
+                                <option value="1600">VLAN 1600 (AL-QORIYAH)</option>
+                                <option value="602">VLAN 602 (ALNET)</option>
+                                <option value="903">VLAN 903 (LEXXA)</option>
+                                <option value="1002">VLAN 1002 (UBL)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-group">
+                        <div class="input-group input-group-sm olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-exchange-alt"></i></span>
+                            <select id="mode" class="form-select">
+                                <option value="pppoe">Mode PPPoE</option>
+                                <option value="bridge">Mode Bridge</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2 form-group">
+                        <label class="form-label small fw-bold text-muted">Interface (e.g 1/4/2)</label>
+                        <div class="input-group input-group-sm olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-ethernet"></i></span>
+                            <input id="iface" class="form-control" placeholder="1/4/2 atau 142">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <div class="input-group input-group-sm olt-input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-fingerprint"></i></span>
+                                <input id="onu" class="form-control" placeholder="ONU ID">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="input-group input-group-sm olt-input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-barcode"></i></span>
+                                <input id="sn" class="form-control" placeholder="SN">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2 form-group">
+                        <div class="input-group input-group-sm mb-2 olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
+                            <input id="user" 
+                                    class="form-control" 
+                                    placeholder="Username (10 Digit Angka)" 
+                                     maxlength="10" 
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                                    onpaste="handlePaste(event)">
+                        </div>
+                        <div class="input-group input-group-sm mb-2 olt-input-group password-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-key"></i></span>
+                            <input id="pass" class="form-control" placeholder="Password PPPoE">
+                            <button class="btn btn-outline-secondary btn-calendar" type="button" onclick="generateDatePass()" title="Gunakan Tanggal Hari Ini">
+                                <i class="fas fa-calendar-alt"></i>
+                            </button>
+                        </div>
+                        <div class="input-group input-group-sm mb-3 olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-address-card"></i></span>
+                            <input id="desc" class="form-control" placeholder="Nama Pelanggan">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-group">
+                        <label class="form-label small fw-bold text-muted">Mikrotik Profile</label>
+                        <div class="input-group input-group-sm olt-input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-tasks"></i></span>
+                            <select id="profile" class="form-select">
+                                <option value="KUSUMA 0">KUSUMA 0</option>
+                                <option value="KUSUMA 1">KUSUMA 1</option>
+                                <option value="KUSUMA 2">KUSUMA 2</option>
+                                <option value="KUSUMA 3">KUSUMA 3</option>
+                                <option value="KUSUMA 4">KUSUMA 4</option>
+                                <option value="PUSPA 0">PUSPA 0</option>
+                                <option value="PUSPA 1">PUSPA 1</option>
+                                <option value="PUSPA 2">PUSPA 2</option>
+                                <option value="PUSPA 3">PUSPA 3</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button onclick="generate()" class="btn btn-primary w-100 mb-2 fw-bold btn-generate">
+                            <i class="fas fa-magic me-2"></i> GENERATE SCRIPT
+                        </button>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <button onclick="copyScript()" class="btn btn-success btn-sm w-100 btn-copy">
+                                    <i class="fas fa-copy me-1"></i> Copy
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button onclick="clearForm()" class="btn btn-secondary btn-sm w-100 btn-clear">
+                                    <i class="fas fa-eraser me-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                        <button onclick="generateSecret()" class="btn btn-info btn-sm w-100 text-white fw-bold btn-secret">
+                            <i class="fas fa-shield-alt me-2"></i> CREATE PPPOE SECRET
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="input-group input-group-sm mb-2">
-                <span class="input-group-text bg-light"><i class="fas fa-key"></i></span>
-                <input id="pass" class="form-control" placeholder="Password PPPoE">
-                <!-- Tombol Generate Password Otomatis -->
-                    <button class="btn btn-outline-secondary" type="button" onclick="generateDatePass()" title="Gunakan Tanggal Hari Ini">
-                        <i class="fas fa-calendar-alt"></i>
-                    </button>
+
+            <!-- CENTER PANEL: Output -->
+            <div class="col-lg-6">
+                <div class="card p-3 shadow-sm olt-panel output-panel">
+                    <div class="d-flex align-items-center justify-content-between mb-3 panel-header">
+                        <h6 class="m-0"><i class="fas fa-terminal me-2 panel-icon"></i> OUTPUT SCRIPT</h6>
+                        <span class="cli-badge">CLI</span>
+                    </div>
+                    <div class="terminal-wrapper">
+                        <div class="terminal-toolbar">
+                            <span class="t-btn close"></span>
+                            <span class="t-btn minimize"></span>
+                            <span class="t-btn maximize"></span>
+                            <span class="terminal-title">zte_config.sh</span>
+                        </div>
+                        <textarea id="output" rows="24" class="form-control" readonly placeholder="Script akan muncul di sini..."></textarea>
+                    </div>
+                </div>
             </div>
-            <div class="input-group input-group-sm mb-3">
-                <span class="input-group-text bg-light"><i class="fas fa-address-card"></i></span>
-                <input id="desc" class="form-control" placeholder="Nama Pelanggan">
+
+            <!-- RIGHT PANEL: Quick Command -->
+            <div class="col-lg-3">
+                <div class="card p-3 shadow-sm olt-panel command-panel">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom-custom panel-header">
+                        <i class="fas fa-bolt panel-icon"></i>
+                        <h6 class="m-0">QUICK COMMAND</h6>
+                    </div>
+                    
+                    <div class="command-groups">
+                        <!-- Diagnostic -->
+                        <div class="command-group">
+                            <div class="group-label">
+                                <i class="fas fa-search"></i>
+                                <span>Diagnostic</span>
+                            </div>
+                            <div class="btn-group-vertical w-100">
+                                <button onclick="cekRedamanPort()" class="btn btn-outline-success btn-sm mb-1">
+                                    <i class="fas fa-broadcast-tower me-2"></i> Cek Redaman Port
+                                </button>
+                                <button onclick="cekRedamanOnu()" class="btn btn-outline-success btn-sm mb-1">
+                                    <i class="fas fa-satellite-dish me-2"></i> Cek Redaman ONU
+                                </button>
+                                <button onclick="cekStatusPort()" class="btn btn-outline-warning btn-sm mb-1">
+                                    <i class="fas fa-list-check me-2"></i> Cek Status Port
+                                </button>
+                                <button onclick="cekDetailOnu()" class="btn btn-outline-warning btn-sm mb-1">
+                                    <i class="fas fa-info-circle me-2"></i> Cek Detail ONU
+                                </button>
+                                <button onclick="cekWan()" class="btn btn-outline-dark btn-sm mb-1">
+                                    <i class="fas fa-network-wired me-2"></i> Cek WAN Config
+                                </button>
+                                <button onclick="cekIp()" class="btn btn-outline-dark btn-sm mb-2">
+                                    <i class="fas fa-globe me-2"></i> Cek IP ONU
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="command-group">
+                            <div class="group-label">
+                                <i class="fas fa-tools"></i>
+                                <span>Actions</span>
+                            </div>
+                            <div class="btn-group-vertical w-100">
+                                <button onclick="resetModem()" class="btn btn-outline-primary btn-sm mb-1">
+                                    <i class="fas fa-undo me-2"></i> Reset Factory
+                                </button>
+                                <button onclick="rebootModem()" class="btn btn-outline-primary btn-sm mb-1">
+                                    <i class="fas fa-power-off me-2"></i> Reboot Modem
+                                </button>
+                                <button onclick="gantiModem()" class="btn btn-outline-primary btn-sm mb-2">
+                                    <i class="fas fa-exchange-alt me-2"></i> Ganti SN Modem
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="command-group danger-zone">
+                            <div class="group-label">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Danger Zone</span>
+                            </div>
+                            <div class="btn-group-vertical w-100">
+                                <button onclick="hapusOnu()" class="btn btn-outline-danger btn-sm mb-1">
+                                    <i class="fas fa-trash-alt me-2"></i> Hapus ONU
+                                </button>
+                                <button onclick="aktifkanPort()" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-plug me-2"></i> Aktifkan Port
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="mb-3">
-            <label class="form-label small fw-bold text-muted">Mikrotik Profile</label>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light"><i class="fas fa-tasks"></i></span>
-                <select id="profile" class="form-select">
-                    <option value="KUSUMA 0">KUSUMA 0</option>
-                    <option value="KUSUMA 1">KUSUMA 1</option>
-                    <option value="KUSUMA 2">KUSUMA 2</option>
-                    <option value="KUSUMA 3">KUSUMA 3</option>
-                    <option value="KUSUMA 4">KUSUMA 4</option>
-                    <option value="PUSPA 0">PUSPA 0</option>
-                    <option value="PUSPA 1">PUSPA 1</option>
-                    <option value="PUSPA 2">PUSPA 2</option>
-                    <option value="PUSPA 3">PUSPA 3</option>
-                </select>
-            </div>
-        </div>
-
-        <button onclick="generate()" class="btn btn-primary w-100 mb-2 fw-bold">
-            <i class="fas fa-magic me-2"></i> GENERATE SCRIPT
-        </button>
-        <div class="row g-2 mb-2">
-            <div class="col-6">
-                <button onclick="copyScript()" class="btn btn-success btn-sm w-100">
-                    <i class="fas fa-copy me-1"></i> Copy
-                </button>
-            </div>
-            <div class="col-6">
-                <button onclick="clearForm()" class="btn btn-secondary btn-sm w-100">
-                    <i class="fas fa-eraser me-1"></i> Clear
-                </button>
-            </div>
-        </div>
-        <button onclick="generateSecret()" class="btn btn-info btn-sm w-100 text-white fw-bold">
-            <i class="fas fa-shield-alt me-2"></i> CREATE PPPOE SECRET
-        </button>
     </div>
-</div>
 
-        <div class="col-lg-6">
-            <div class="card p-3 shadow-sm">
-                <h6><i class="fas fa-terminal me-2" ></i> OUTPUT SCRIPT</h6>
-                <textarea id="output" rows="24" class="form-control" readonly placeholder="Script akan muncul di sini..."></textarea>
-            </div>
-        </div>
-
-        <div class="col-lg-3">
-    <div class="card p-3 shadow-sm">
-        <div class="d-flex align-items-center mb-3 pb-2 border-bottom-custom">
-            <h6 class="m-0">QUICK COMMAND</h6>
-        </div>
-        <div class="btn-group-vertical w-100">
-            <button onclick="cekRedamanPort()" class="btn btn-outline-success btn-sm mb-1">
-                <i class="fas fa-broadcast-tower me-2"></i> Cek Redaman Port
-            </button>
-            <button onclick="cekRedamanOnu()" class="btn btn-outline-success btn-sm mb-1">
-                <i class="fas fa-satellite-dish me-2"></i> Cek Redaman ONU
-            </button>
-            <button onclick="cekStatusPort()" class="btn btn-outline-warning btn-sm mb-1">
-                <i class="fas fa-list-check me-2"></i> Cek Status Port
-            </button>
-            <button onclick="cekDetailOnu()" class="btn btn-outline-warning btn-sm mb-1">
-                <i class="fas fa-info-circle me-2"></i> Cek Detail ONU
-            </button>
-            <button onclick="cekWan()" class="btn btn-outline-dark btn-sm mb-1">
-                <i class="fas fa-network-wired me-2"></i> Cek WAN Config
-            </button>
-            <button onclick="cekIp()" class="btn btn-outline-dark btn-sm mb-2">
-                <i class="fas fa-globe me-2"></i> Cek IP ONU
-            </button>
-            
-            <hr class="my-2">
-            
-            <button onclick="resetModem()" class="btn btn-outline-primary btn-sm mb-1">
-                <i class="fas fa-undo me-2"></i> Reset Factory
-            </button>
-            <button onclick="rebootModem()" class="btn btn-outline-primary btn-sm mb-1">
-                <i class="fas fa-power-off me-2"></i> Reboot Modem
-            </button>
-            <button onclick="gantiModem()" class="btn btn-outline-primary btn-sm mb-2">
-                <i class="fas fa-exchange-alt me-2"></i> Ganti SN Modem
-            </button>
-            
-            <hr class="my-2">
-            
-            <button onclick="hapusOnu()" class="btn btn-outline-danger btn-sm mb-1">
-                <i class="fas fa-trash-alt me-2"></i> Hapus ONU
-            </button>
-            <button onclick="aktifkanPort()" class="btn btn-outline-danger btn-sm">
-                <i class="fas fa-plug me-2"></i> Aktifkan Port
-            </button>
-        </div>
-    </div>
-</div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="js/templates.js"></script>
-<script src="js/prompt.js"></script>
-<script src="js/app.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/templates.js"></script>
+    <script src="js/prompt.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
