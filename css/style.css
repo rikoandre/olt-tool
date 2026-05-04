@@ -1,184 +1,550 @@
-/* ============================================================
-   GLOBAL STYLES
-   ============================================================ */
-body { 
-    background: #f5f6fa; 
-    font-size: 14px; 
-    color: #2d3436;
+/* ============================================
+   OLT Config Generator - Modern UI
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* CSS Variables */
+:root {
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+    --bg-gradient-start: #f0f4f8;
+    --bg-gradient-end: #d9e2ec;
+    --panel-bg: rgba(255, 255, 255, 0.95);
+    --panel-border: rgba(255, 255, 255, 0.6);
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --success: #10b981;
+    --success-dark: #059669;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #0ea5e9;
+    --dark: #334155;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ============================================================
-   COMPONENTS
-   ============================================================ */
-
-/* Card Styling */
-.card { 
-    border-radius: 15px; 
-    border: none; 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+/* Base */
+.olt-app {
+    font-family: var(--font-main);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    min-height: 100vh;
+    color: var(--text-primary);
+    padding-bottom: 2rem;
 }
 
-/* Typography */
-h6 { 
-    font-weight: bold; 
-    color: #2d3436; 
-    margin-bottom: 15px; 
-    border-bottom: 2px solid #0984e3; 
-    display: inline-block; 
-    padding-bottom: 5px;
+/* Scrollbar */
+.olt-app ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.olt-app ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.olt-app ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.olt-app ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
-/* Buttons Grouping */
-.btn-group-vertical .btn { 
-    text-align: left; 
-    margin-bottom: 5px; 
-    border-radius: 5px !important; 
+/* ============================================
+   HEADER
+   ============================================ */
+.app-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.25rem 0;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+.app-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -5%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.app-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+.app-header .brand-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.app-header .brand-text h1 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+.app-header .brand-text span {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+.status-badge .pulse {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    position: relative;
+}
+.status-badge .pulse::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: #4ade80;
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+@keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* ============================================================
-   OUTPUT CONSOLE (TEXTAREA)
-   ============================================================ */
-textarea { 
-    font-family: 'Courier New', monospace; 
-    font-size: 14px; 
-    background: #1e272e !important; /* Latar belakang gelap solid */
-    color: #ffffff !important;      /* Teks Putih Bersih */
-    border: 1px solid #485460;
-    border-radius: 8px;
-    padding: 15px;
-    line-height: 1.5;
-    resize: none;                   /* Mencegah user merubah ukuran manual */
-    transition: all 0.3s ease;
+/* ============================================
+   PANELS
+   ============================================ */
+.main-container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+.olt-panel {
+    background: var(--panel-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--panel-border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-xl) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+.olt-panel:hover {
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15) !important;
+}
+.panel-header {
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.875rem;
+    margin-bottom: 1.25rem;
+}
+.panel-header .panel-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: var(--primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    margin-right: 0.75rem;
+}
+.panel-header h6 {
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
 }
 
-/* Fokus saat diklik */
-textarea:focus {
-    outline: none;
-    border-color: #0984e3;
-    box-shadow: 0 0 8px rgba(9, 132, 227, 0.3);
+/* Sticky Input Panel on Desktop */
+@media (min-width: 992px) {
+    .input-panel {
+        position: sticky;
+        top: 1rem;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
 }
 
-/* ============================================================
-   UTILITY
-   ============================================================ */
-.small-text {
-    font-size: 12px;
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.form-group {
+    margin-bottom: 0.25rem;
+}
+.form-group label {
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary) !important;
+    margin-bottom: 0.375rem;
+    display: block;
 }
 
-/* Styling Ikon di Tombol */
-.btn-group-vertical .btn i {
-    width: 20px; /* Memastikan semua ikon punya lebar yang sama agar teks sejajar */
-    text-align: center;
+.olt-input-group {
+    position: relative;
+    transition: var(--transition);
 }
-
-/* Garis pemisah yang lebih halus */
-hr {
-    border-top: 1px solid #dfe6e9;
-    opacity: 1;
-}
-
-/* Efek saat tombol di-hover */
-.btn-sm:hover i {
-    transform: scale(1.2);
-    transition: transform 0.2s ease;
-}
-
-/* Menghilangkan border ganda di antara ikon dan input */
-.input-group-text {
+.olt-input-group .input-group-text {
+    background: #f8fafc !important;
+    border: 2px solid #e2e8f0;
     border-right: none;
-    color: #636e72;
-    background-color: #f8f9fa !important;
+    color: var(--text-muted);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    transition: var(--transition);
 }
-
-.input-group .form-control, 
-.input-group .form-select {
+.olt-input-group .form-control,
+.olt-input-group .form-select {
+    border: 2px solid #e2e8f0;
     border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: #fff;
+    transition: var(--transition);
+}
+.olt-input-group .form-control::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+.olt-input-group:focus-within .input-group-text {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #eef2ff !important;
+}
+.olt-input-group:focus-within .form-control,
+.olt-input-group:focus-within .form-select {
+    border-color: var(--primary);
+    box-shadow: none;
+    background: #fff;
+}
+.olt-input-group .form-select {
+    padding-right: 2rem;
+    cursor: pointer;
 }
 
-/* Fokus state untuk input group */
-.input-group:focus-within .input-group-text {
-    border-color: #0984e3;
-    color: #0984e3;
+/* Password Group Calendar Button */
+.password-group .btn-calendar {
+    border: 2px solid #e2e8f0;
+    border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: #f8fafc;
+    color: var(--text-muted);
+    padding: 0 0.875rem;
+    transition: var(--transition);
+    z-index: 10;
+}
+.password-group .btn-calendar:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.password-group:focus-within .btn-calendar {
+    border-color: var(--primary);
 }
 
-/* Ukuran ikon agar seragam */
-.input-group-text i {
-    width: 16px;
+/* Fix for single select without label that has no left border issue */
+.olt-input-group:has(.form-select:not(#oltType):not(#vlan):not(#profile)) .input-group-text {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.action-buttons {
+    margin-top: 0.5rem;
+}
+.btn-generate {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    padding: 0.875rem !important;
+    border-radius: var(--radius-md) !important;
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 14px 0 rgba(118, 75, 162, 0.39);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.btn-generate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(118, 75, 162, 0.5);
+    filter: brightness(1.05);
+}
+.btn-generate:active {
+    transform: translateY(0);
+}
+
+.btn-copy {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.625rem !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    transition: var(--transition);
+    color: white !important;
+}
+.btn-copy:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    filter: brightness(1.05);
+}
+
+.btn-clear {
+    background: #f1f5f9 !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.625rem !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-secondary) !important;
+    transition: var(--transition);
+}
+.btn-clear:hover {
+    background: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+    color: var(--text-primary) !important;
+    transform: translateY(-1px);
+}
+
+.btn-secret {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.625rem !important;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    transition: var(--transition);
+}
+.btn-secret:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+    filter: brightness(1.05);
+}
+
+/* ============================================
+   TERMINAL / OUTPUT
+   ============================================ */
+.output-panel {
+    display: flex;
+    flex-direction: column;
+}
+.output-panel .panel-header {
+    flex-shrink: 0;
+}
+.cli-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: #1e293b;
+    color: #4ade80;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', monospace;
+}
+.terminal-wrapper {
+    background: #0f172a;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.terminal-toolbar {
+    background: #1e293b;
+    padding: 0.625rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #334155;
+}
+.t-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.t-btn.close { background: #f87171; }
+.t-btn.minimize { background: #fbbf24; }
+.t-btn.maximize { background: #4ade80; }
+.terminal-title {
+    margin-left: 0.75rem;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+}
+#output {
+    background: #0f172a;
+    color: #4ade80;
+    border: none;
+    border-radius: 0;
+    padding: 1.25rem;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    resize: vertical;
+    flex: 1;
+    min-height: 400px;
+}
+#output::placeholder {
+    color: #475569;
+    font-style: italic;
+}
+#output:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* ============================================
+   QUICK COMMANDS
+   ============================================ */
+.command-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.command-group .group-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.625rem;
+    padding-left: 0.25rem;
+}
+.command-group .group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, #e2e8f0, transparent);
+    margin-left: 0.25rem;
+}
+.command-group .group-label i {
+    font-size: 0.75rem;
+}
+.command-group .btn {
+    text-align: left;
+    border-radius: var(--radius-md);
+    padding: 0.625rem 0.875rem;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    border-width: 1.5px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.command-group .btn:hover {
+    transform: translateX(4px);
+}
+.command-group .btn i {
+    width: 20px;
     text-align: center;
 }
 
-/* ============================================================
-   RESPONSIVE DESIGN (MEDIA QUERIES)
-   ============================================================ */
+/* Danger Zone Special Styling */
+.danger-zone .group-label {
+    color: var(--danger);
+}
+.danger-zone .group-label::after {
+    background: linear-gradient(to right, #fecaca, transparent);
+}
+.danger-zone .btn-outline-danger {
+    border-color: #fecaca;
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.02);
+}
+.danger-zone .btn-outline-danger:hover {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: #f87171;
+    color: #b91c1c;
+}
 
-/* 1. Tablet & HP (Layar di bawah 992px) */
-@media (max-width: 992px) {
-    .sidebar {
-        width: 0;
-        left: -260px; /* Sembunyikan sidebar ke kiri */
-        overflow: hidden;
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 991.98px) {
+    .app-header .brand-text h1 {
+        font-size: 1.1rem;
     }
-
-    /* Paksa sidebar muncul saat class 'show' aktif (untuk mobile toggle) */
-    .sidebar.hide {
-        left: 0;
-        width: 260px;
+    .app-header .brand-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
     }
-
-    .main-section {
-        left: 0 !important;
-        width: 100% !important;
+    .olt-panel {
+        margin-bottom: 1rem;
     }
-
-    .main-section.expand {
-        left: 0;
+    #output {
+        min-height: 300px;
+    }
+    .command-group .btn:hover {
+        transform: translateX(2px);
     }
 }
 
-/* 2. Handphone (Layar di bawah 576px) */
-@media (max-width: 576px) {
-    .content-wrapper {
-        padding: 15px !important; /* Kurangi padding agar tidak sempit */
+@media (max-width: 575.98px) {
+    .olt-app {
+        padding-bottom: 1rem;
     }
-
-    .dashboard {
-        font-size: 16px !important; /* Perkecil teks judul navbar */
+    .app-header {
+        padding: 1rem 0;
+        margin-bottom: 1rem;
     }
-
-    /* Buat kolom input, output, dan command menjadi full width */
-    .col-xl-3, .col-xl-6, .col-lg-4, .col-lg-8 {
-        width: 100%;
+    .panel-header {
+        margin-bottom: 1rem;
     }
-
-    /* Sesuaikan tinggi textarea agar tidak terlalu memakan tempat di HP */
-    textarea {
-        height: 300px !important;
-        font-size: 12px; /* Perkecil font code sedikit */
+    .btn-generate {
+        font-size: 0.8125rem;
+        padding: 0.75rem !important;
     }
-
-    /* Tombol aksi jadi lebih besar agar mudah ditekan jari */
-    .btn-sm {
-        padding: 10px;
-        font-size: 13px;
+    .terminal-toolbar {
+        padding: 0.5rem 0.75rem;
     }
-
-    /* Sembunyikan teks Welcome di navbar untuk menghemat ruang */
-    .ms-auto .text-muted {
-        display: none;
-    }
-}
-
-/* 3. Penyesuaian Layout Grid agar fleksibel */
-.row {
-    --bs-gutter-x: 1rem; /* Jarak antar card */
-}
-
-.card {
-    margin-bottom: 1rem; /* Jarak bawah antar card saat menumpuk di mobile */
-}
-
-/* Memastikan gambar/logo tidak pecah atau keluar jalur */
-img {
-    max-width: 100%;
-    height: auto;
 }
