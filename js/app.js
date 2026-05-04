@@ -112,7 +112,7 @@ function validasiInput(isSecret = false) {
  * Fungsi Utama untuk Generate Script OLT
  */
 function generate() {
-    // 1. Jalankan validasi (Cek kekosongan & format 10 digit username)
+    // 1. Jalankan validasi (Cek kekosongan & format username)
     if (!validasiInput(false)) return;
 
     // 2. Ambil dan format Interface
@@ -131,7 +131,10 @@ function generate() {
         sn: document.getElementById("sn").value.trim().toUpperCase(),
         user: document.getElementById("user").value.trim(),
         pass: document.getElementById("pass").value.trim(),
-        desc: autoDescription(document.getElementById("user").value, document.getElementById("desc").value)
+        // Gunakan autoDescription atau fallback ke username jika deskripsi kosong
+        desc: (typeof autoDescription === "function") 
+              ? autoDescription(document.getElementById("user").value, document.getElementById("desc").value)
+              : (document.getElementById("desc").value.trim() || document.getElementById("user").value.trim())
     };
 
     const olt = document.getElementById("oltType").value;
@@ -142,33 +145,38 @@ function generate() {
 
     try {
         // --- LOGIC PEMILIHAN TEMPLATE ---
+        
         if (olt === "c600") {
-            // Logic khusus ZTE C600
+            // Logic khusus ZTE C600 (VLAN 134 otomatis dari toggleVlan)
             script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
-        } else {
+        } 
+        else {
             // Logic khusus ZTE C300 / C320
             if (mode === "bridge") {
                 // Seleksi Template Bridge berdasarkan VLAN
-                if (vlan === "100") {
-                    script = unbBridgeTemplate(data);
-                } else if (vlan === "1501") {
-                    script = boloBridgeTemplate(data);
-                } else if (vlan === "1000") {
-                    script = ugrBridgeTemplate(data);
-                } else if (vlan === "511") {
-                    script = ucdBridgeTemplate(data);
-                } else {
-                    Swal.fire("Info", "VLAN ini belum mendukung mode bridge otomatis.", "info");
-                    return;
+                switch (vlan) {
+                    case "100":  script = unbBridgeTemplate(data); break;
+                    case "1501": script = boloBridgeTemplate(data); break;
+                    case "1000": script = ugrBridgeTemplate(data); break;
+                    case "511":  script = ucdBridgeTemplate(data); break;
+                    default:
+                        Swal.fire("Info", "VLAN ini belum mendukung mode bridge otomatis.", "info");
+                        return;
                 }
             } else {
                 // Mode PPPoE (Normal) mengambil dari object 'templates' di templates.js
+                // Ini akan menangani VLAN 1001, 134, 110, 1002, dll.
                 script = templates[vlan] ? templates[vlan](data) : "Template VLAN tidak ditemukan.";
             }
         }
 
         // 4. Output Hasil ke Textarea
-        document.getElementById("output").value = script;
+        const outputField = document.getElementById("output");
+        if (outputField) {
+            outputField.value = script;
+        } else {
+            console.warn("Elemen output tidak ditemukan");
+        }
 
         // 5. Notifikasi Berhasil
         Swal.fire({ 
@@ -180,11 +188,11 @@ function generate() {
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Error Detail:", error);
         Swal.fire({
             icon: 'error',
             title: 'Template Error',
-            text: 'Gagal memanggil template. Pastikan templates.js sudah ter-load dengan benar.'
+            text: 'Gagal memanggil template. Pastikan templates.js sudah ter-load.'
         });
     }
 }
@@ -193,48 +201,53 @@ function generate() {
 // 3. UI HELPER FUNCTIONS
 // ==========================
 
+/**
+ * Mengatur tampilan dropdown VLAN dan Mode berdasarkan tipe OLT
+ */
 function toggleVlan() {
     const olt = document.getElementById("oltType").value;
     const vlanSelect = document.getElementById("vlan");
     const modeSelect = document.getElementById("mode");
-    const vlanVal = vlanSelect.value;
 
-    // Ambil elemen option VLAN 134 (UNR)
-    // Pastikan di HTML Anda, <option> untuk 134 memiliki value="134"
+    if (!vlanSelect || !modeSelect) return;
+
+    // Ambil elemen option VLAN 134 (UNR) untuk manipulasi tampilan
     const vlan134Option = vlanSelect.querySelector('option[value="134"]');
 
     if (olt === "c600") {
-        // --- LOGIC C600 ---
-        vlanSelect.disabled = true; 
-        modeSelect.disabled = false;
-        
-        // Tampilkan kembali VLAN 134 jika sebelumnya disembunyikan
+        // --- LOGIC OLT C600 ---
+        vlanSelect.disabled = true; // C600 di-lock ke satu VLAN sesuai template
+        modeSelect.disabled = false; // Mendukung Bridge & PPPoE
+
+        // Tampilkan VLAN 134 dan pilih otomatis
         if (vlan134Option) vlan134Option.style.display = "block";
-        
-        // Paksa pilih ke 134 karena C600 di template Anda menggunakan VLAN 134
         vlanSelect.value = "134"; 
-        
+
     } else {
-        // --- LOGIC C300 / C320 ---
+        // --- LOGIC OLT C300 / C320 ---
         vlanSelect.disabled = false;
 
-        // Sembunyikan VLAN 134 karena ini khusus C600
+        // 1. Sembunyikan VLAN 134 (Karena 134 di database Anda khusus script C600)
         if (vlan134Option) {
             vlan134Option.style.display = "none";
             
-            // Jika saat ini sedang terpilih 134, pindahkan ke VLAN lain (misal 110 atau pertama)
+            // Jika user sedang di 134, pindahkan ke VLAN pertama yang tersedia (misal 1001)
             if (vlanSelect.value === "134") {
-                vlanSelect.value = vlanSelect.options[0].value === "134" 
-                                   ? vlanSelect.options[1].value 
-                                   : vlanSelect.options[0].value;
+                vlanSelect.value = vlanSelect.options[0].value !== "134" 
+                                   ? vlanSelect.options[0].value 
+                                   : vlanSelect.options[1].value;
             }
         }
 
-        // Logic Bridge Support
+        // 2. Logic Pembatasan Mode Bridge
+        // Daftar VLAN C300 yang memiliki template bridge di templates.js
         const supportBridge = ["100", "1501", "1000", "511"];
+        
         if (supportBridge.includes(vlanSelect.value)) {
+            // Aktifkan pilihan jika mendukung Bridge (VLAN 100, 1501, 1000, 511)
             modeSelect.disabled = false;
         } else {
+            // Paksa ke PPPoE jika VLAN tidak mendukung bridge otomatis (VLAN 1001, 110, 1002, dll)
             modeSelect.value = "pppoe";
             modeSelect.disabled = true;
         }
@@ -363,7 +376,6 @@ function handlePaste(event) {
         }
     }
 }
-
 
 /**
  * Generate Password berdasarkan tanggal hari ini (DDMMYY)
