@@ -8,6 +8,32 @@
 // 1. TEMPLATE ZTE C600 (SERI TERBARU)
 // ==========================================
 
+// ==========================
+// C600 DDR PRISMA
+// ==========================
+// Tambahkan ini di bagian atas bersama template C600 lainnya
+const c600DdrPrismaTemplate = (d) => `conf t
+interface gpon_olt-${d.iface}
+  onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon_onu-${d.iface}:${d.onu}
+  name ${d.user}
+  description ${d.desc}
+  tcont 1 profile kusuma
+  gemport 1 tcont 1
+exit
+interface vport-${d.iface}.${d.onu}:1
+  service-port 1 user-vlan 2104 vlan 2104
+  qos traffic-policy DDR direction egress
+exit
+pon-onu-mng gpon_onu-${d.iface}:${d.onu}
+  service 1 gemport 1 vlan 2104
+  security-mgmt 1 state enable mode forward protocol web
+  wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v2104 host 1
+exit
+exit
+write`;
+
 const c600Template = (d) => `conf t
 interface gpon_olt-${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
