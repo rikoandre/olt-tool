@@ -1,17 +1,12 @@
 /**
  * DATABASE TEMPLATE OLT
  * File: templates.js
- * Deskripsi: Menyimpan semua template konfigurasi untuk berbagai jenis OLT dan VLAN.
  */
 
 // ==========================================
 // 1. TEMPLATE ZTE C600 (SERI TERBARU)
 // ==========================================
 
-// ==========================
-// C600 DDR PRISMA
-// ==========================
-// Tambahkan ini di bagian atas bersama template C600 lainnya
 const c600DdrPrismaTemplate = (d) => `conf t
 interface gpon_olt-${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -89,8 +84,31 @@ exit
 write`;
 
 // ==========================================
-// 2. TEMPLATE BRIDGE ZTE C320/C300
+// 2. TEMPLATE ZTE C320/C300
 // ==========================================
+
+const c300DdrPrismaTemplate = (d) => `conf t
+interface gpon-olt_${d.iface}
+  onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+  name ${d.user}
+  description ${d.desc}
+  sn-bind enable sn
+  tcont 1 profile kusuma
+  gemport 1 tcont 1
+  switchport mode hybrid vport 1
+  service-port 1 vport 1 user-vlan 2104 vlan 2104
+  qos traffic-policy DDR direction egress
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+  service 1 gemport 1 vlan 2104
+  security-mgmt 1 state enable mode forward protocol web
+  wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v2104 host 1
+  wan-ip 1 ping-response enable traceroute-response enable
+exit
+exit
+write`;
 
 const ugrBridgeTemplate = (d) => `conf t
 interface gpon-olt_${d.iface}
@@ -199,7 +217,6 @@ write`;
 // ==========================================
 
 const templates = {
-    // UNR-RJW / VLAN 1001
     "1001": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -219,7 +236,6 @@ exit
 exit
 write`,
 
-    // UNR / VLAN 134
     "134": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -239,7 +255,6 @@ exit
 exit
 write`,
 
-    // UHO / VLAN 110
     "110": (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -259,7 +274,6 @@ exit
 exit
 write`,
 
-    // UBL / VLAN 1002
     "1002": (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -279,7 +293,6 @@ exit
 exit
 write`,
 
-    // UGR / VLAN 1000
     "1000": (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -299,7 +312,6 @@ exit
 exit
 write`,
 
-    // UNB / VLAN 100
     "100": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -322,7 +334,6 @@ exit
 exit
 write`,
 
-    // ALQORIYAH / VLAN 1600
     "1600": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -345,7 +356,6 @@ exit
 exit
 write`,
 
-    // BOLO / VLAN 1501
     "1501": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -368,7 +378,6 @@ exit
 exit
 write`,
 
-    // CADAR / VLAN 511
     "511": (d) => `conf t
 interface gpon-olt_${d.iface}
  onu ${d.onu} type ALL sn ${d.sn}
@@ -391,7 +400,6 @@ exit
 exit
 write`,
 
-    // ALNET / VLAN 602
     "602": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL-ONT sn ${d.sn}
@@ -414,7 +422,6 @@ exit
 exit
 write`,
 
-    // LEXXA / VLAN 903
     "903": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL-ONT sn ${d.sn}
