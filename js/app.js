@@ -42,13 +42,16 @@ function autoDescription(user, desc) {
 // ==========================
 
 /**
- * Validasi Input yang Fleksibel
- * @param {boolean} isSecret - Jika true, hanya validasi user, pass, dan paket.
+ * Fungsi Validasi Input yang Sempurna
+ * Mendukung validasi standar (10 digit) dan fleksibilitas DDR Prisma
  */
 function validasiInput(isSecret = false) {
-    // 1. Tentukan field mana yang wajib berdasarkan konteks
+    const olt = document.getElementById("oltType").value;
+    const vlan = document.getElementById("vlan").value;
+    const userValue = document.getElementById("user").value.trim();
+
+    // 1. Tentukan field mana yang wajib diisi berdasarkan konteks (isSecret atau OLT)
     let fields = [];
-    
     if (isSecret) {
         fields = [
             { id: 'user', name: 'Username' },
@@ -65,7 +68,7 @@ function validasiInput(isSecret = false) {
         ];
     }
 
-    // 2. Loop cek kekosongan
+    // 2. Cek kekosongan semua field yang wajib
     for (let f of fields) {
         const el = document.getElementById(f.id);
         if (!el || !el.value.trim()) {
@@ -74,29 +77,44 @@ function validasiInput(isSecret = false) {
         }
     }
 
-    // 3. Validasi spesifik: Username wajib 10 digit angka
-    const userValue = document.getElementById("user").value.trim();
-    const regexAngka = /^[0-9]{10}$/; 
-    if (!regexAngka.test(userValue)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Username Tidak Valid',
-            text: 'Username wajib berupa 10 digit angka!',
-            confirmButtonColor: '#d33'
-        });
-        return false;
+    // 3. Logika Validasi Username (Pemisahan DDR Prisma vs Reguler)
+    if (olt === "c600" && vlan === "2104") {
+        // --- VALIDASI DDR PRISMA ---
+        // Mendukung Alfanumerik, Underscore, dan Titik
+        const ddrRegex = /^[a-zA-Z0-9._-]+$/;
+        if (!ddrRegex.test(userValue)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Format DDR Prisma Salah',
+                text: 'Username hanya boleh Huruf, Angka, Titik(.), atau Underscore(_). Tanpa Spasi!',
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+    } else {
+        // --- VALIDASI REGULER (10 Digit Angka) ---
+        const regexAngka = /^[0-9]{10}$/; 
+        if (!regexAngka.test(userValue)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Username Tidak Valid',
+                text: 'Username PPPoE reguler wajib berupa 10 digit angka!',
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
     }
 
-    // --- TAMBAHAN VALIDASI KHUSUS OLT (Hanya jika bukan isSecret) ---
+    // 4. Validasi Tambahan Khusus Konfigurasi OLT (Bukan Secret Mikrotik)
     if (!isSecret) {
-        // 4. Validasi ONU ID: Maksimal 128
+        // Validasi ONU ID: Harus angka 1 - 128
         const onuValue = parseInt(document.getElementById("onu").value.trim());
         if (isNaN(onuValue) || onuValue < 1 || onuValue > 128) {
             Swal.fire("Batas ONU ID", "ONU ID harus berupa angka antara 1 sampai 128!", "warning");
             return false;
         }
 
-        // 5. Validasi Serial Number: Minimal 8 karakter
+        // Validasi Serial Number: Minimal 8 karakter (ZTE biasanya 12 karakter)
         const snValue = document.getElementById("sn").value.trim();
         if (snValue.length < 8) {
             Swal.fire("SN Terlalu Pendek", "Serial Number minimal harus 8 karakter!", "warning");
@@ -104,7 +122,7 @@ function validasiInput(isSecret = false) {
         }
     }
 
-    return true;
+    return true; // Semua validasi lolos
 }
 
 
@@ -131,7 +149,6 @@ function generate() {
         sn: document.getElementById("sn").value.trim().toUpperCase(),
         user: document.getElementById("user").value.trim(),
         pass: document.getElementById("pass").value.trim(),
-        // Gunakan autoDescription atau fallback ke username jika deskripsi kosong
         desc: (typeof autoDescription === "function") 
               ? autoDescription(document.getElementById("user").value, document.getElementById("desc").value)
               : (document.getElementById("desc").value.trim() || document.getElementById("user").value.trim())
@@ -147,11 +164,17 @@ function generate() {
         // --- LOGIC PEMILIHAN TEMPLATE ---
         
         if (olt === "c600") {
-            // Logic khusus ZTE C600 (VLAN 134 otomatis dari toggleVlan)
-            script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
+            // --- Logic Khusus ZTE C600 ---
+            if (vlan === "2104") {
+                // Fitur Baru: DDR Prisma
+                script = c600DdrPrismaTemplate(data);
+            } else {
+                // Default C600 (VLAN 134)
+                script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
+            }
         } 
         else {
-            // Logic khusus ZTE C300 / C320
+            // --- Logic Khusus ZTE C300 / C320 ---
             if (mode === "bridge") {
                 // Seleksi Template Bridge berdasarkan VLAN
                 switch (vlan) {
@@ -165,7 +188,7 @@ function generate() {
                 }
             } else {
                 // Mode PPPoE (Normal) mengambil dari object 'templates' di templates.js
-                // Ini akan menangani VLAN 1001, 134, 110, 1002, dll.
+                // Menangani VLAN 1001, 134 (C300), 110, 1002, dll.
                 script = templates[vlan] ? templates[vlan](data) : "Template VLAN tidak ditemukan.";
             }
         }
@@ -174,8 +197,6 @@ function generate() {
         const outputField = document.getElementById("output");
         if (outputField) {
             outputField.value = script;
-        } else {
-            console.warn("Elemen output tidak ditemukan");
         }
 
         // 5. Notifikasi Berhasil
@@ -196,85 +217,154 @@ function generate() {
         });
     }
 }
-
 // ==========================
 // 3. UI HELPER FUNCTIONS
 // ==========================
 
 /**
- * Mengatur tampilan dropdown VLAN dan Mode berdasarkan tipe OLT
+ * Mengatur tampilan dropdown VLAN, Mode, dan Validasi Input berdasarkan tipe OLT
  */
 function toggleVlan() {
     const olt = document.getElementById("oltType").value;
     const vlanSelect = document.getElementById("vlan");
     const modeSelect = document.getElementById("mode");
+    const userInput = document.getElementById("user");
+    
+    if (!vlanSelect || !modeSelect || !userInput) return;
 
-    if (!vlanSelect || !modeSelect) return;
-
-    // Ambil elemen option VLAN 134 (UNR) untuk manipulasi tampilan
-    const vlan134Option = vlanSelect.querySelector('option[value="134"]');
+    const options = vlanSelect.options;
+    const vlanVal = vlanSelect.value;
 
     if (olt === "c600") {
         // --- LOGIC OLT C600 ---
-        vlanSelect.disabled = true; // C600 di-lock ke satu VLAN sesuai template
-        modeSelect.disabled = false; // Mendukung Bridge & PPPoE
+        vlanSelect.disabled = false; 
 
-        // Tampilkan VLAN 134 dan pilih otomatis
-        if (vlan134Option) vlan134Option.style.display = "block";
-        vlanSelect.value = "134"; 
+        // 1. Filter Dropdown: Hanya tampilkan VLAN khusus C600 (134 & 2104)
+        for (let i = 0; i < options.length; i++) {
+            const val = options[i].value;
+            options[i].style.display = (val === "134" || val === "2104") ? "block" : "none";
+        }
+
+        // 2. Logic khusus per VLAN di C600
+        if (vlanVal === "2104") {
+            // --- MODE DDR PRISMA ---
+            userInput.placeholder = "Contoh: 260509001_Faizal_Adi";
+            userInput.maxLength = 50; 
+            // Izinkan huruf, angka, titik, underscore, dan dash
+            userInput.oninput = function() {
+                this.value = this.value.replace(/[^a-zA-Z0-9._-]/g, '');
+            };
+            
+            modeSelect.value = "pppoe";
+            modeSelect.disabled = true; // DDR Prisma wajib PPPoE
+        } else {
+            // --- MODE C600 REGULER (VLAN 134) ---
+            applyRegulerValidation(userInput);
+            modeSelect.disabled = false;
+        }
+
+        // 3. Pastikan tidak nyangkut di VLAN C300
+        if (vlanVal !== "134" && vlanVal !== "2104") {
+            vlanSelect.value = "134";
+        }
 
     } else {
         // --- LOGIC OLT C300 / C320 ---
         vlanSelect.disabled = false;
+        applyRegulerValidation(userInput);
 
-        // 1. Sembunyikan VLAN 134 (Karena 134 di database Anda khusus script C600)
-        if (vlan134Option) {
-            vlan134Option.style.display = "none";
-            
-            // Jika user sedang di 134, pindahkan ke VLAN pertama yang tersedia (misal 1001)
-            if (vlanSelect.value === "134") {
-                vlanSelect.value = vlanSelect.options[0].value !== "134" 
-                                   ? vlanSelect.options[0].value 
-                                   : vlanSelect.options[1].value;
-            }
+        // 1. Filter Dropdown: Sembunyikan VLAN khusus C600
+        for (let i = 0; i < options.length; i++) {
+            const val = options[i].value;
+            options[i].style.display = (val === "134" || val === "2104") ? "none" : "block";
         }
 
-        // 2. Logic Pembatasan Mode Bridge
-        // Daftar VLAN C300 yang memiliki template bridge di templates.js
+        // 2. Pastikan tidak nyangkut di VLAN C600
+        if (vlanVal === "134" || vlanVal === "2104") {
+            vlanSelect.value = "1001"; // Default ke salah satu VLAN C300
+        }
+
+        // 3. Logic Pembatasan Mode Bridge C300
         const supportBridge = ["100", "1501", "1000", "511"];
-        
         if (supportBridge.includes(vlanSelect.value)) {
-            // Aktifkan pilihan jika mendukung Bridge (VLAN 100, 1501, 1000, 511)
             modeSelect.disabled = false;
         } else {
-            // Paksa ke PPPoE jika VLAN tidak mendukung bridge otomatis (VLAN 1001, 110, 1002, dll)
             modeSelect.value = "pppoe";
             modeSelect.disabled = true;
         }
     }
 }
 
+/**
+ * Fungsi Pembantu untuk Reset Validasi ke Standar (10 Digit Angka)
+ */
+function applyRegulerValidation(inputEl) {
+    if (!inputEl) return;
+    inputEl.placeholder = "Username (10 Digit Angka)";
+    inputEl.maxLength = 10;
+    // Paksa hanya angka untuk mode selain DDR Prisma
+    inputEl.oninput = function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    };
+}
+
+
+
+/**
+ * Menyalin script ke clipboard
+ */
 function copyScript() {
     const output = document.getElementById("output");
-    if (!output.value) {
+    if (!output || !output.value) {
         Swal.fire("Kosong", "Tidak ada script untuk disalin", "warning");
         return;
     }
+    
     output.select();
-    document.execCommand("copy");
-    Swal.fire({ icon: 'success', title: 'Copied!', timer: 500, showConfirmButton: false });
+    output.setSelectionRange(0, 99999); // Untuk mobile
+    
+    try {
+        document.execCommand("copy");
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'Berhasil Disalin!', 
+            timer: 800, 
+            showConfirmButton: false 
+        });
+    } catch (err) {
+        Swal.fire("Error", "Gagal menyalin teks", "error");
+    }
 }
 
+/**
+ * Membersihkan form dengan konfirmasi
+ */
 function clearForm() {
     Swal.fire({
         title: 'Bersihkan form?',
-        icon: 'question',
+        text: "Semua data input dan output akan dihapus!",
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Ya, hapus!'
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
+            // Reset semua input kecuali select OLT
             document.querySelectorAll("input").forEach(i => i.value = "");
             document.getElementById("output").value = "";
+            
+            // Fokuskan kembali ke input pertama
+            const ifaceInput = document.getElementById("iface");
+            if (ifaceInput) ifaceInput.focus();
+
+            Swal.fire({
+                title: 'Dibersihkan!',
+                icon: 'success',
+                timer: 800,
+                showConfirmButton: false
+            });
         }
     });
 }
