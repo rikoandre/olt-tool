@@ -43,32 +43,29 @@ function autoDescription(user, desc) {
 
 /**
  * Fungsi Validasi Input yang Sempurna
- * Mendukung validasi standar (10 digit) dan fleksibilitas DDR Prisma
+ * Mendukung validasi standar (10 digit) dan fleksibilitas DDR Prisma di semua tipe OLT
  */
 function validasiInput(isSecret = false) {
     const olt = document.getElementById("oltType").value;
     const vlan = document.getElementById("vlan").value;
     const userValue = document.getElementById("user").value.trim();
 
-    // 1. Tentukan field mana yang wajib diisi berdasarkan konteks (isSecret atau OLT)
-    let fields = [];
-    if (isSecret) {
-        fields = [
+    // 1. Tentukan field wajib berdasarkan konteks
+    let fields = isSecret 
+        ? [
             { id: 'user', name: 'Username' },
             { id: 'pass', name: 'Password' },
             { id: 'profile', name: 'Paket/Profile' }
-        ];
-    } else {
-        fields = [
+          ]
+        : [
             { id: 'iface', name: 'Interface' },
             { id: 'onu', name: 'ONU ID' },
             { id: 'sn', name: 'Serial Number' },
             { id: 'user', name: 'Username' },
             { id: 'pass', name: 'Password' }
-        ];
-    }
+          ];
 
-    // 2. Cek kekosongan semua field yang wajib
+    // 2. Cek kekosongan field
     for (let f of fields) {
         const el = document.getElementById(f.id);
         if (!el || !el.value.trim()) {
@@ -77,11 +74,12 @@ function validasiInput(isSecret = false) {
         }
     }
 
-    // 3. Logika Validasi Username (Pemisahan DDR Prisma vs Reguler)
-    if (olt === "c600" && vlan === "2104") {
+    // 3. LOGIKA VALIDASI USERNAME (DDR Prisma vs Reguler)
+    // Perbaikan: Cek berdasarkan VLAN saja agar berlaku di C600 maupun C300
+    if (vlan === "2104") {
         // --- VALIDASI DDR PRISMA ---
-        // Mendukung Alfanumerik, Underscore, dan Titik
         const ddrRegex = /^[a-zA-Z0-9._-]+$/;
+        
         if (!ddrRegex.test(userValue)) {
             Swal.fire({
                 icon: 'error',
@@ -91,8 +89,13 @@ function validasiInput(isSecret = false) {
             });
             return false;
         }
+        
+        if (userValue.length < 10) {
+            Swal.fire("Username Terlalu Pendek", "Username DDR Prisma minimal 10 karakter!", "warning");
+            return false;
+        }
     } else {
-        // --- VALIDASI REGULER (10 Digit Angka) ---
+        // --- VALIDASI REGULER (Wajib 10 Digit Angka) ---
         const regexAngka = /^[0-9]{10}$/; 
         if (!regexAngka.test(userValue)) {
             Swal.fire({
@@ -105,16 +108,16 @@ function validasiInput(isSecret = false) {
         }
     }
 
-    // 4. Validasi Tambahan Khusus Konfigurasi OLT (Bukan Secret Mikrotik)
+    // 4. Validasi Tambahan untuk Konfigurasi OLT (Bukan Secret)
     if (!isSecret) {
-        // Validasi ONU ID: Harus angka 1 - 128
+        // Validasi ONU ID
         const onuValue = parseInt(document.getElementById("onu").value.trim());
         if (isNaN(onuValue) || onuValue < 1 || onuValue > 128) {
             Swal.fire("Batas ONU ID", "ONU ID harus berupa angka antara 1 sampai 128!", "warning");
             return false;
         }
 
-        // Validasi Serial Number: Minimal 8 karakter (ZTE biasanya 12 karakter)
+        // Validasi Serial Number (Min 8 karakter)
         const snValue = document.getElementById("sn").value.trim();
         if (snValue.length < 8) {
             Swal.fire("SN Terlalu Pendek", "Serial Number minimal harus 8 karakter!", "warning");
@@ -122,7 +125,7 @@ function validasiInput(isSecret = false) {
         }
     }
 
-    return true; // Semua validasi lolos
+    return true; // Lolos semua validasi
 }
 
 
@@ -149,6 +152,7 @@ function generate() {
         sn: document.getElementById("sn").value.trim().toUpperCase(),
         user: document.getElementById("user").value.trim(),
         pass: document.getElementById("pass").value.trim(),
+        // Gunakan autoDescription atau fallback ke username jika deskripsi kosong
         desc: (typeof autoDescription === "function") 
               ? autoDescription(document.getElementById("user").value, document.getElementById("desc").value)
               : (document.getElementById("desc").value.trim() || document.getElementById("user").value.trim())
@@ -162,21 +166,28 @@ function generate() {
 
     try {
         // --- LOGIC PEMILIHAN TEMPLATE ---
-        
+
         if (olt === "c600") {
-            // --- Logic Khusus ZTE C600 ---
+            // ==========================================
+            // SEKSI OLT ZTE C600 (V9)
+            // ==========================================
             if (vlan === "2104") {
-                // Fitur Baru: DDR Prisma
+                // Khusus DDR Prisma di C600
                 script = c600DdrPrismaTemplate(data);
             } else {
-                // Default C600 (VLAN 134)
+                // Default C600 (VLAN 134) mendukung Bridge & PPPoE
                 script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
             }
-        } 
-        else {
-            // --- Logic Khusus ZTE C300 / C320 ---
-            if (mode === "bridge") {
-                // Seleksi Template Bridge berdasarkan VLAN
+
+        } else {
+            // ==========================================
+            // SEKSI OLT ZTE C300 / C320 (V6)
+            // ==========================================
+            if (vlan === "2104") {
+                // Khusus DDR Prisma di C300260509001_Faizal_Adi_Pratama
+                script = c300DdrPrismaTemplate(data);
+            } else if (mode === "bridge") {
+                // Seleksi Template Bridge berdasarkan VLAN C300
                 switch (vlan) {
                     case "100":  script = unbBridgeTemplate(data); break;
                     case "1501": script = boloBridgeTemplate(data); break;
@@ -187,8 +198,7 @@ function generate() {
                         return;
                 }
             } else {
-                // Mode PPPoE (Normal) mengambil dari object 'templates' di templates.js
-                // Menangani VLAN 1001, 134 (C300), 110, 1002, dll.
+                // Mode PPPoE Standar C300 (VLAN 1001, 110, 1002, dll)
                 script = templates[vlan] ? templates[vlan](data) : "Template VLAN tidak ditemukan.";
             }
         }
@@ -197,6 +207,8 @@ function generate() {
         const outputField = document.getElementById("output");
         if (outputField) {
             outputField.value = script;
+        } else {
+            console.warn("Elemen output tidak ditemukan");
         }
 
         // 5. Notifikasi Berhasil
@@ -217,95 +229,93 @@ function generate() {
         });
     }
 }
-// ==========================
-// 3. UI HELPER FUNCTIONS
-// ==========================
+
 
 /**
- * Mengatur tampilan dropdown VLAN, Mode, dan Validasi Input berdasarkan tipe OLT
+ * Mengatur tampilan dropdown VLAN dan validasi input berdasarkan tipe OLT & VLAN
  */
 function toggleVlan() {
     const olt = document.getElementById("oltType").value;
     const vlanSelect = document.getElementById("vlan");
     const modeSelect = document.getElementById("mode");
     const userInput = document.getElementById("user");
-    
+
     if (!vlanSelect || !modeSelect || !userInput) return;
 
-    const options = vlanSelect.options;
     const vlanVal = vlanSelect.value;
+    const options = vlanSelect.options;
 
+    // --- 1. FILTER DROPDOWN BERDASARKAN OLT ---
     if (olt === "c600") {
-        // --- LOGIC OLT C600 ---
-        vlanSelect.disabled = false; 
-
-        // 1. Filter Dropdown: Hanya tampilkan VLAN khusus C600 (134 & 2104)
+        // C600: Hanya tampilkan VLAN 134 dan 2104
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
             options[i].style.display = (val === "134" || val === "2104") ? "block" : "none";
         }
-
-        // 2. Logic khusus per VLAN di C600
-        if (vlanVal === "2104") {
-            // --- MODE DDR PRISMA ---
-            userInput.placeholder = "Contoh: 260509001_Faizal_Adi";
-            userInput.maxLength = 50; 
-            // Izinkan huruf, angka, titik, underscore, dan dash
-            userInput.oninput = function() {
-                this.value = this.value.replace(/[^a-zA-Z0-9._-]/g, '');
-            };
-            
-            modeSelect.value = "pppoe";
-            modeSelect.disabled = true; // DDR Prisma wajib PPPoE
-        } else {
-            // --- MODE C600 REGULER (VLAN 134) ---
-            applyRegulerValidation(userInput);
-            modeSelect.disabled = false;
-        }
-
-        // 3. Pastikan tidak nyangkut di VLAN C300
-        if (vlanVal !== "134" && vlanVal !== "2104") {
-            vlanSelect.value = "134";
-        }
-
+        // Safety: Jika tersesat di VLAN lain, paksa ke 134
+        if (vlanVal !== "134" && vlanVal !== "2104") vlanSelect.value = "134";
     } else {
-        // --- LOGIC OLT C300 / C320 ---
-        vlanSelect.disabled = false;
-        applyRegulerValidation(userInput);
-
-        // 1. Filter Dropdown: Sembunyikan VLAN khusus C600
+        // C300/C320: Tampilkan semua kecuali 134
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134" || val === "2104") ? "none" : "block";
+            options[i].style.display = (val === "134") ? "none" : "block";
         }
+        // Safety: Jika tersesat di VLAN 134, pindahkan ke default C300
+        if (vlanVal === "134") vlanSelect.value = "1001";
+    }
 
-        // 2. Pastikan tidak nyangkut di VLAN C600
-        if (vlanVal === "134" || vlanVal === "2104") {
-            vlanSelect.value = "1001"; // Default ke salah satu VLAN C300
-        }
+    // Ambil nilai VLAN terbaru setelah kemungkinan dipindah oleh safety check
+    const currentVlan = vlanSelect.value;
 
-        // 3. Logic Pembatasan Mode Bridge C300
-        const supportBridge = ["100", "1501", "1000", "511"];
-        if (supportBridge.includes(vlanSelect.value)) {
-            modeSelect.disabled = false;
-        } else {
-            modeSelect.value = "pppoe";
-            modeSelect.disabled = true;
-        }
+    // --- 2. LOGIKA VALIDASI & UI BERDASARKAN VLAN ---
+    if (currentVlan === "2104") {
+        // KHUSUS DDR PRISMA (Berlaku untuk semua OLT)
+        applyDdrPrismaLogic(userInput, modeSelect);
+    } else {
+        // PELANGGAN REGULER
+        applyRegulerLogic(userInput, modeSelect, olt, currentVlan);
     }
 }
 
 /**
- * Fungsi Pembantu untuk Reset Validasi ke Standar (10 Digit Angka)
+ * Helper: Logika Alfanumerik untuk DDR Prisma
  */
-function applyRegulerValidation(inputEl) {
-    if (!inputEl) return;
-    inputEl.placeholder = "Username (10 Digit Angka)";
-    inputEl.maxLength = 10;
-    // Paksa hanya angka untuk mode selain DDR Prisma
-    inputEl.oninput = function() {
+function applyDdrPrismaLogic(userInput, modeSelect) {
+    userInput.placeholder = "Contoh: 260509001_Faizal_Adi";
+    userInput.maxLength = 50;
+    userInput.oninput = function() {
+        // Izinkan Huruf, Angka, Underscore, Titik, dan Dash
+        this.value = this.value.replace(/[^a-zA-Z0-9._-]/g, '');
+    };
+    
+    // DDR Prisma wajib PPPoE
+    modeSelect.value = "pppoe";
+    modeSelect.disabled = true;
+}
+
+/**
+ * Helper: Logika Numerik untuk Pelanggan Reguler
+ */
+function applyRegulerLogic(userInput, modeSelect, olt, vlanVal) {
+    userInput.placeholder = "Username (10 Digit Angka)";
+    userInput.maxLength = 10;
+    userInput.oninput = function() {
+        // Hanya angka
         this.value = this.value.replace(/[^0-9]/g, '');
     };
+
+    // Logika Mode Bridge untuk OLT C300/C320
+    const supportBridge = ["100", "1501", "1000", "511"];
+    
+    if (olt === "c600") {
+        // C600 reguler (134) selalu bisa pilih mode
+        modeSelect.disabled = false;
+    } else {
+        // C300 reguler: Hanya VLAN tertentu yang bisa Bridge
+        const canBridge = supportBridge.includes(vlanVal);
+        modeSelect.disabled = !canBridge;
+        if (!canBridge) modeSelect.value = "pppoe";
+    }
 }
 
 
