@@ -26,8 +26,7 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
   security-mgmt 1 state enable mode forward protocol web
   wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v2104 host 1
 exit
-exit
-write`;
+exit`;
 
 const c600Template = (d) => `conf t
 interface gpon_olt-${d.iface}
