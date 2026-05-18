@@ -49,8 +49,7 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
   tr069-mgmt 1 state unlock
   tr069-mgmt 1 acs http://acs.upaz.net.id:9999/ validate basic username acs@upaz.net.id password upaz8ersinar
 exit
-exit
-write`;
+exit`;
 
 const c600BridgeTemplate = (d) => `conf t
 interface gpon_olt-${d.iface}
@@ -79,8 +78,7 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
   security-mgmt 1 state enable mode forward protocol web
   wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v128 host 1
 exit
-exit
-write`;
+exit`;
 
 // ==========================================
 // 2. TEMPLATE ZTE C320/C300
