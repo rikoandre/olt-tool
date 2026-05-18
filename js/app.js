@@ -43,7 +43,7 @@ function autoDescription(user, desc) {
 
 /**
  * Fungsi Validasi Input yang Sempurna
- * Mendukung validasi standar (10 digit) dan fleksibilitas DDR Prisma di semua tipe OLT
+ * Mendukung validasi standar (10 digit) dan fleksibilitas DDR Prisma & ALNET di semua tipe OLT
  */
 function validasiInput(isSecret = false) {
     const olt = document.getElementById("oltType").value;
@@ -74,24 +74,23 @@ function validasiInput(isSecret = false) {
         }
     }
 
-    // 3. LOGIKA VALIDASI USERNAME (DDR Prisma vs Reguler)
-    // Perbaikan: Cek berdasarkan VLAN saja agar berlaku di C600 maupun C300
-    if (vlan === "2104") {
-        // --- VALIDASI DDR PRISMA ---
-        const ddrRegex = /^[a-zA-Z0-9._-]+$/;
+    // 3. LOGIKA VALIDASI USERNAME (Alfanumerik vs Reguler)
+    if (vlan === "2104" || vlan === "602") {
+        // --- VALIDASI ALFANUMERIK (DDR PRISMA & ALNET) ---
+        const alfanumerikRegex = /^[a-zA-Z0-9._\-@]+$/;
         
-        if (!ddrRegex.test(userValue)) {
+        if (!alfanumerikRegex.test(userValue)) {
             Swal.fire({
                 icon: 'error',
-                title: 'Format DDR Prisma Salah',
-                text: 'Username hanya boleh Huruf, Angka, Titik(.), atau Underscore(_). Tanpa Spasi!',
+                title: 'Format Username Salah',
+                text: 'Username hanya boleh Huruf, Angka, Titik(.), Underscore(_), atau Simbol(@). Tanpa Spasi!',
                 confirmButtonColor: '#d33'
             });
             return false;
         }
         
         if (userValue.length < 10) {
-            Swal.fire("Username Terlalu Pendek", "Username DDR Prisma minimal 10 karakter!", "warning");
+            Swal.fire("Username Terlalu Pendek", "Username minimal harus 10 karakter!", "warning");
             return false;
         }
     } else {
@@ -152,7 +151,6 @@ function generate() {
         sn: document.getElementById("sn").value.trim().toUpperCase(),
         user: document.getElementById("user").value.trim(),
         pass: document.getElementById("pass").value.trim(),
-        // Gunakan autoDescription atau fallback ke username jika deskripsi kosong
         desc: (typeof autoDescription === "function") 
               ? autoDescription(document.getElementById("user").value, document.getElementById("desc").value)
               : (document.getElementById("desc").value.trim() || document.getElementById("user").value.trim())
@@ -166,28 +164,22 @@ function generate() {
 
     try {
         // --- LOGIC PEMILIHAN TEMPLATE ---
-
         if (olt === "c600") {
             // ==========================================
             // SEKSI OLT ZTE C600 (V9)
             // ==========================================
             if (vlan === "2104") {
-                // Khusus DDR Prisma di C600
                 script = c600DdrPrismaTemplate(data);
             } else {
-                // Default C600 (VLAN 134) mendukung Bridge & PPPoE
                 script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
             }
-
         } else {
             // ==========================================
             // SEKSI OLT ZTE C300 / C320 (V6)
             // ==========================================
             if (vlan === "2104") {
-                // Khusus DDR Prisma di C300260509001_Faizal_Adi_Pratama
                 script = c300DdrPrismaTemplate(data);
             } else if (mode === "bridge") {
-                // Seleksi Template Bridge berdasarkan VLAN C300
                 switch (vlan) {
                     case "100":  script = unbBridgeTemplate(data); break;
                     case "1501": script = boloBridgeTemplate(data); break;
@@ -198,7 +190,6 @@ function generate() {
                         return;
                 }
             } else {
-                // Mode PPPoE Standar C300 (VLAN 1001, 110, 1002, dll)
                 script = templates[vlan] ? templates[vlan](data) : "Template VLAN tidak ditemukan.";
             }
         }
@@ -247,48 +238,45 @@ function toggleVlan() {
 
     // --- 1. FILTER DROPDOWN BERDASARKAN OLT ---
     if (olt === "c600") {
-        // C600: Hanya tampilkan VLAN 134 dan 2104
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
             options[i].style.display = (val === "134" || val === "2104") ? "block" : "none";
         }
-        // Safety: Jika tersesat di VLAN lain, paksa ke 134
         if (vlanVal !== "134" && vlanVal !== "2104") vlanSelect.value = "134";
     } else {
-        // C300/C320: Tampilkan semua kecuali 134
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
             options[i].style.display = (val === "134") ? "none" : "block";
         }
-        // Safety: Jika tersesat di VLAN 134, pindahkan ke default C300
         if (vlanVal === "134") vlanSelect.value = "1001";
     }
 
-    // Ambil nilai VLAN terbaru setelah kemungkinan dipindah oleh safety check
     const currentVlan = vlanSelect.value;
 
     // --- 2. LOGIKA VALIDASI & UI BERDASARKAN VLAN ---
-    if (currentVlan === "2104") {
-        // KHUSUS DDR PRISMA (Berlaku untuk semua OLT)
-        applyDdrPrismaLogic(userInput, modeSelect);
+    // PERBAIKAN: Masukkan vlan 602 ke dalam filter alfanumerik & panggil helper yang benar
+    if (currentVlan === "2104" || currentVlan === "602") {
+        applyAlfanumerikLogic(userInput, modeSelect, currentVlan);
     } else {
-        // PELANGGAN REGULER
         applyRegulerLogic(userInput, modeSelect, olt, currentVlan);
     }
 }
 
 /**
- * Helper: Logika Alfanumerik untuk DDR Prisma
+ * Helper: Logika Alfanumerik untuk DDR Prisma & ALNET
  */
-function applyDdrPrismaLogic(userInput, modeSelect) {
-    userInput.placeholder = "Contoh: 260509001_Faizal_Adi";
+function applyAlfanumerikLogic(userInput, modeSelect, vlanVal) {
+    if (vlanVal === "2104") {
+        userInput.placeholder = "Contoh: 260509001_Faizal_Adi";
+    } else if (vlanVal === "602") {
+        userInput.placeholder = "Contoh: 17260515001@tulungagung.net";
+    }
+    
     userInput.maxLength = 50;
     userInput.oninput = function() {
-        // Izinkan Huruf, Angka, Underscore, Titik, dan Dash
-        this.value = this.value.replace(/[^a-zA-Z0-9._-]/g, '');
+        this.value = this.value.replace(/[^a-zA-Z0-9._\-@]/g, '');
     };
     
-    // DDR Prisma wajib PPPoE
     modeSelect.value = "pppoe";
     modeSelect.disabled = true;
 }
@@ -300,24 +288,19 @@ function applyRegulerLogic(userInput, modeSelect, olt, vlanVal) {
     userInput.placeholder = "Username (10 Digit Angka)";
     userInput.maxLength = 10;
     userInput.oninput = function() {
-        // Hanya angka
         this.value = this.value.replace(/[^0-9]/g, '');
     };
 
-    // Logika Mode Bridge untuk OLT C300/C320
     const supportBridge = ["100", "1501", "1000", "511"];
     
     if (olt === "c600") {
-        // C600 reguler (134) selalu bisa pilih mode
         modeSelect.disabled = false;
     } else {
-        // C300 reguler: Hanya VLAN tertentu yang bisa Bridge
         const canBridge = supportBridge.includes(vlanVal);
         modeSelect.disabled = !canBridge;
         if (!canBridge) modeSelect.value = "pppoe";
     }
 }
-
 
 
 /**
@@ -331,7 +314,7 @@ function copyScript() {
     }
     
     output.select();
-    output.setSelectionRange(0, 99999); // Untuk mobile
+    output.setSelectionRange(0, 99999);
     
     try {
         document.execCommand("copy");
@@ -361,11 +344,9 @@ function clearForm() {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Reset semua input kecuali select OLT
             document.querySelectorAll("input").forEach(i => i.value = "");
             document.getElementById("output").value = "";
             
-            // Fokuskan kembali ke input pertama
             const ifaceInput = document.getElementById("iface");
             if (ifaceInput) ifaceInput.focus();
 
@@ -381,41 +362,30 @@ function clearForm() {
 
 /**
  * Fungsi Terpadu untuk Generate Script PPPoE Secret Mikrotik
- * Hanya mewajibkan Username, Password, dan Profile.
  */
 function generateSecret() {
-    // 1. Jalankan Validasi khusus Secret (isSecret = true)
-    // Ini akan mengecek apakah User, Pass, dan Profile sudah terisi & User sesuai 10 digit angka
     if (!validasiInput(true)) return;
 
-    // 2. Ambil data dari form
     const user = document.getElementById("user").value.trim();
     const pass = document.getElementById("pass").value.trim();
     const rawDesc = document.getElementById("desc") ? document.getElementById("desc").value.trim() : "";
     
-    // Ambil nilai profile (Paket), pastikan elemen ada
     const profileElem = document.getElementById("profile");
     const profile = profileElem ? profileElem.value : "default";
 
-    // 3. Logic Comment/Deskripsi (Opsional)
-    // Jika kolom deskripsi diisi, tampilkan di comment Mikrotik. Jika kosong, script tetap jalan.
     let commentPart = "";
     if (rawDesc) {
         const commentValue = `${user} - ${rawDesc.toUpperCase()}`;
         commentPart = ` comment="${commentValue}"`;
     }
 
-    // 4. Konstruksi Perintah CLI Mikrotik
-    // script utama (User, Pass, Profile) + part comment (jika ada)
     const script = `/ppp secret add name="${user}" password="${pass}" service=pppoe profile="${profile}"${commentPart}`;
 
-    // 5. Tampilkan Hasil ke Output Area
     const outputArea = document.getElementById("output");
     if (outputArea) {
         outputArea.value = script;
     }
 
-    // 6. Notifikasi Visual menggunakan SweetAlert2
     Swal.fire({
         icon: 'success',
         title: 'Secret Mikrotik Siap!',
@@ -427,44 +397,33 @@ function generateSecret() {
 }
 
 /**
-/**
  * Logika untuk membedah teks copypaste (Username|Nama)
- * Membersihkan spasi, tab, dan simbol yang tidak diinginkan.
  */
 function handlePaste(event) {
-    // Ambil teks dari clipboard
+    // Jalankan auto-split hanya jika bukan VLAN alfanumerik (2104 / 602)
+    const vlan = document.getElementById("vlan").value;
+    if (vlan === "2104" || vlan === "602") return; // Biarkan paste berjalan normal untuk Prisma/ALNET
+
     let paste = (event.clipboardData || window.clipboardData).getData('text');
-    
-    // RegEx Delimiter: Mendukung |, :, -, dan Tab (\t)
     const delimiters = /[|:\t-]/;
 
     if (delimiters.test(paste)) {
-        // Hentikan proses paste default
         event.preventDefault();
 
-        // 1. Bagi teks berdasarkan delimiter
         let parts = paste.split(delimiters);
-        
-        // 2. Ambil ID Pelanggan (Hanya ambil angka, hapus spasi/simbol tersembunyi)
         let idPel = parts[0].replace(/\D/g, '').substring(0, 10);
         
-        // 3. Ambil Nama Pelanggan (Bersihkan spasi di awal/akhir dan spasi ganda di tengah)
         let namaPel = "";
         if (parts[1]) {
-            namaPel = parts[1]
-                .trim()                 // Hapus spasi di depan & belakang
-                .replace(/\s+/g, ' ')   // Ubah tab atau spasi ganda menjadi satu spasi saja
-                .toUpperCase();         // Ubah ke HURUF BESAR
+            namaPel = parts[1].trim().replace(/\s+/g, ' ').toUpperCase();
         }
 
-        // 4. Masukkan ke kolom masing-masing
         document.getElementById("user").value = idPel;
         
         const descInput = document.getElementById("desc");
         if (descInput && namaPel) {
             descInput.value = namaPel;
             
-            // Notifikasi Toast Sukses
             Swal.fire({
                 toast: true,
                 position: 'top-end',
@@ -482,12 +441,9 @@ function handlePaste(event) {
  */
 function generateDatePass() {
     const d = new Date();
-    
-    // Ambil Tanggal, Bulan (+1 karena index mulai dari 0), dan Tahun
-    // padStart(2, '0') memastikan jika angka satuan tetap dapet nol di depan (contoh: 05)
     const date = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = String(d.getFullYear()).substring(2); // Ambil 2 digit terakhir tahun
+    const year = String(d.getFullYear()).substring(2);
 
     const passOtomatis = `${date}${month}${year}`;
     
@@ -495,7 +451,6 @@ function generateDatePass() {
     if (passInput) {
         passInput.value = passOtomatis;
         
-        // Notifikasi Toast Kecil
         Swal.fire({
             toast: true,
             position: 'top-end',
