@@ -10,10 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="olt-app">
-
-    <!-- App Header -->
-    <header class="app-header">
+<body class="olt-app" onload="toggleVlan()"> <header class="app-header">
         <div class="container-fluid">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="brand">
@@ -36,7 +33,6 @@
     <div class="container-fluid p-3 main-container">
         <div class="row g-3">
             
-            <!-- LEFT PANEL: Input Config -->
             <div class="col-lg-3">
                 <div class="card p-3 shadow-sm h-100 olt-panel input-panel">
                     <div class="d-flex align-items-center mb-3 pb-2 border-bottom-custom panel-header">
@@ -66,13 +62,12 @@
                                 <option value="1000">VLAN 1000 (UGR)</option>
                                 <option value="110">VLAN 110 (UHO)</option>
                                 <option value="2104">VLAN 2104 (DDR-PRISMA)</option>
-                                <option value="100">VLAN 100 (UNB)</option>                             
+                                <option value="100">VLAN 100 (UNB)</option>                                             
                                 <option value="511">VLAN 511 (UCD)</option>
                                 <option value="1501">VLAN 1501 (BOLO)</option>
                                 <option value="1600">VLAN 1600 (AL-QORIYAH)</option>
                                 <option value="602">VLAN 602 (ALNET)</option>
                                 <option value="903">VLAN 903 (LEXXA)</option>
-                                
                             </select>
                         </div>
                     </div>
@@ -115,7 +110,7 @@
                             <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
                             <input id="user" 
                                 class="form-control" 
-                                placeholder="Username (10 Digit Angka)" 
+                                placeholder="" 
                                 onpaste="handlePaste(event)">
                         </div>
                         <div class="input-group input-group-sm mb-2 olt-input-group password-group">
@@ -145,6 +140,7 @@
                                 <option value="PUSPA 1">PUSPA 1</option>
                                 <option value="PUSPA 2">PUSPA 2</option>
                                 <option value="PUSPA 3">PUSPA 3</option>
+                                <option value="WIJAYA 0">WIJAYA 0</option>
                             </select>
                         </div>
                     </div>
@@ -172,7 +168,6 @@
                 </div>
             </div>
 
-            <!-- CENTER PANEL: Output -->
             <div class="col-lg-6">
                 <div class="card p-3 shadow-sm olt-panel output-panel">
                     <div class="d-flex align-items-center justify-content-between mb-3 panel-header">
@@ -191,7 +186,6 @@
                 </div>
             </div>
 
-            <!-- RIGHT PANEL: Quick Command -->
             <div class="col-lg-3">
                 <div class="card p-3 shadow-sm olt-panel command-panel">
                     <div class="d-flex align-items-center mb-3 pb-2 border-bottom-custom panel-header">
@@ -200,7 +194,6 @@
                     </div>
                     
                     <div class="command-groups">
-                        <!-- Diagnostic -->
                         <div class="command-group">
                             <div class="group-label">
                                 <i class="fas fa-search"></i>
@@ -228,7 +221,6 @@
                             </div>
                         </div>
 
-                        <!-- Actions -->
                         <div class="command-group">
                             <div class="group-label">
                                 <i class="fas fa-tools"></i>
@@ -247,7 +239,6 @@
                             </div>
                         </div>
 
-                        <!-- Danger Zone -->
                         <div class="command-group danger-zone">
                             <div class="group-label">
                                 <i class="fas fa-exclamation-triangle"></i>
