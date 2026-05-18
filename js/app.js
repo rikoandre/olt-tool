@@ -396,17 +396,88 @@ function generateSecret() {
     });
 }
 
+
 /**
- * Logika untuk membedah teks copypaste (Username|Nama)
+ * Logika Cerdas Membedah Teks dari Hasil Paste
+ * Mendukung deteksi otomatis: Interface, ONU ID, dan Serial Number (SN)
  */
 function handlePaste(event) {
-    // Jalankan auto-split hanya jika bukan VLAN alfanumerik (2104 / 602)
     const vlan = document.getElementById("vlan").value;
-    if (vlan === "2104" || vlan === "602") return; // Biarkan paste berjalan normal untuk Prisma/ALNET
+    
+    // Ambil data teks dari clipboard
+    let paste = (event.clipboardData || window.clipboardData).getData('text').trim();
 
-    let paste = (event.clipboardData || window.clipboardData).getData('text');
+    // =========================================================================
+    // JALUR 1: DETEKSI FORMAT INPUT CLI / UNCONFIGURED (Dengan/Tanpa Tipe & SN)
+    // Contoh: "gpon-onu_1/2/12:1       ZTEGCD680DA4"
+    // Contoh: "gpon_olt-1/6/5      F609V5.3             ZTEGC897E31D        GC897E31D"
+    // Contoh: "gpon_onu-1/5/13:103" atau "1/5/13:103"
+    // =========================================================================
+    
+    // Cek apakah teks mengandung pola port OLT (angka/angka/angka)
+    const interfaceRegex = /(?:gpon[-_](?:onu|olt)[-_])?(\d+\/\d+\/\d+)/i;
+    const matchIface = paste.match(interfaceRegex);
+
+    if (matchIface) {
+        event.preventDefault(); // Hentikan aksi paste default browser
+
+        // 1. Ekstrak dan Set Nilai Interface
+        let extractedIface = formatInterface(matchIface[1]);
+        document.getElementById("iface").value = extractedIface;
+
+        // 2. Ekstrak ONU ID (jika ada tanda titik dua setelah interface, misal :1 atau :103)
+        const onuRegex = /\d+\/\d+\/\d+:(\d+)/;
+        const matchOnu = paste.match(onuRegex);
+        if (matchOnu && matchOnu[1]) {
+            let onuId = parseInt(matchOnu[1], 10);
+
+            // Validasi: Wajib angka dan Maksimal 128
+        if (!isNaN(onuId) && onuId >= 1 && onuId <= 128) {
+            document.getElementById("onu").value = onuId;
+        } else if (onuId > 128) {
+             // Jika hasil paste lebih dari 128, otomatis set ke batas maksimal (128)
+            document.getElementById("onu").value = 128; 
+        
+            // Atau opsional tampilkan peringatan kecil
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'ONU ID melebihi 128! Otomatis diatur ke 128.',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+}
+
+        // 3. Ekstrak Serial Number (SN) ZTE 
+        // Pola umum SN ZTE: "ZTEGxxxxxxxx" atau string alfanumerik 12 karakter di akhir baris
+        const snRegex = /(ZTEG[A-F0-9]{8}|[A-F0-9]{12})/i;
+        const matchSn = paste.match(snRegex);
+        if (matchSn && matchSn[1]) {
+            // Set ke input SN dalam bentuk uppercase (Huruf Kapital)
+            document.getElementById("sn").value = matchSn[1].toUpperCase();
+        }
+
+        // Tampilkan Notifikasi Sukses
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Data OLT & SN Berhasil Dipisah!',
+            showConfirmButton: false,
+            timer: 1500
+        });
+        return; // Keluar dari fungsi, jangan lanjut ke jalur database pelanggan
+    }
+
+    // Proteksi tambahan untuk VLAN tertentu agar tidak bentrok dengan database
+    if (vlan === "2104" || vlan === "602") return;
+
+    // =========================================================================
+    // JALUR 2: DETEKSI FORMAT DATABASE PELANGGAN (e.g., "ID|NAMA")
+    // =========================================================================
     const delimiters = /[|:\t-]/;
-
     if (delimiters.test(paste)) {
         event.preventDefault();
 
@@ -436,6 +507,7 @@ function handlePaste(event) {
     }
 }
 
+
 /**
  * Generate Password berdasarkan tanggal hari ini (DDMMYY)
  */
@@ -461,3 +533,18 @@ function generateDatePass() {
         });
     }
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Kode ini otomatis berjalan begitu browser selesai membaca HTML
+    document.getElementById("onu").addEventListener("input", function() {
+        if (this.value === "") return;
+        let val = parseInt(this.value, 10);
+        if (isNaN(val)) {
+            this.value = "";
+        } else if (val > 128) {
+            this.value = 128;
+        } else if (val < 1) {
+            this.value = 1;
+        }
+    });
+});
