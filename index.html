@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="olt-app" onload="toggleVlan()"> <header class="app-header">
+<body class="olt-app" onload="toggleVlan()"> 
+    <header class="app-header">
         <div class="container-fluid">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="brand">
@@ -86,7 +87,7 @@
                         <label class="form-label small fw-bold text-muted">Interface (e.g 1/4/2)</label>
                         <div class="input-group input-group-sm olt-input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-ethernet"></i></span>
-                            <input id="iface" class="form-control" placeholder="1/4/2 atau 142">
+                            <input id="iface" class="form-control" placeholder="1/4/2 atau 142" onpaste="handlePaste(event)">
                         </div>
                     </div>
 
@@ -94,7 +95,13 @@
                         <div class="col-6">
                             <div class="input-group input-group-sm olt-input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-fingerprint"></i></span>
-                                <input id="onu" class="form-control" placeholder="ONU ID">
+                                <input id="onu" 
+                                        type="number" 
+                                        min="1" 
+                                        max="128" 
+                                        class="form-control" 
+                                        placeholder="ONU ID" 
+                                        onpaste="handlePaste(event)">
                             </div>
                         </div>
                         <div class="col-6">
@@ -108,10 +115,7 @@
                     <div class="mb-2 form-group">
                         <div class="input-group input-group-sm mb-2 olt-input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
-                            <input id="user" 
-                                class="form-control" 
-                                placeholder="" 
-                                onpaste="handlePaste(event)">
+                            <input id="user" class="form-control" placeholder="Username / ID Pelanggan" onpaste="handlePaste(event)">
                         </div>
                         <div class="input-group input-group-sm mb-2 olt-input-group password-group">
                             <span class="input-group-text bg-light"><i class="fas fa-key"></i></span>
@@ -259,7 +263,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/templates.js"></script>
     <script src="js/prompt.js"></script>
     <script src="js/app.js"></script>
