@@ -84,25 +84,21 @@ exit`;
 // 2. TEMPLATE ZTE C320/C300
 // ==========================================
 
-const c300DdrPrismaTemplate = (d) => `conf t
+const c300DdrPrismaTemplate = (d) => `config terminal
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
 exit
 interface gpon-onu_${d.iface}:${d.onu}
   name ${d.user}
   description ${d.desc}
-  sn-bind enable sn
   tcont 1 profile kusuma
-  gemport 1 tcont 1
-  switchport mode hybrid vport 1
+  gemport 1 traffic-limit downstream DDR
   service-port 1 vport 1 user-vlan 2104 vlan 2104
-  qos traffic-policy DDR direction egress
 exit
 pon-onu-mng gpon-onu_${d.iface}:${d.onu}
   service 1 gemport 1 vlan 2104
   security-mgmt 1 state enable mode forward protocol web
-  wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v2104 host 1
-  wan-ip 1 ping-response enable traceroute-response enable
+  wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile v2104 host 1
 exit
 exit
 write`;
