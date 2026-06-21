@@ -25,16 +25,28 @@ function formatInterface(iface) {
 }
 
 /**
- * Otomatisasi Deskripsi Pelanggan
+ * Otomatisasi Deskripsi Pelanggan (Perbaikan Anti-Double Output)
  */
 function autoDescription(user, desc) {
-    desc = desc.trim();
+    user = user.trim();
+    desc = desc.trim().toUpperCase();
+    
+    // Jika kolom deskripsi kosong, langsung kembalikan Username kapital
     if (!desc) return user.toUpperCase();
     
-    // Hindari duplikasi tanda hubung
-    if (desc.includes("-")) return desc.toUpperCase();
+    // PERBAIKAN: Jika kolom deskripsi sudah diawali/mengandung username itu sendiri
+    // (misal: "0000000000 - JOKO"), kembalikan nilai deskripsi tersebut apa adanya.
+    if (desc.includes(user)) {
+        return desc;
+    }
     
-    return `${user} - ${desc.toUpperCase()}`;
+    // Jika kolom deskripsi sudah punya tanda hubung dari format lain, gunakan deskripsi itu saja
+    if (desc.includes("-")) {
+        return desc;
+    }
+    
+    // Format standar jika bersih: "USER - DESC"
+    return `${user} - ${desc}`;
 }
 
 // ==========================================
@@ -458,7 +470,7 @@ function handlePaste(event) {
         return; // Keluar dari fungsi, jangan lanjut ke jalur database pelanggan
     }
 
-    // Proteksi tambahan untuk VLAN tertentu agar tidak bentrok dengan database
+    // PERBAIKAN: Proteksi tambahan untuk VLAN tertentu (termasuk BB D / 207) agar tidak bentrok dengan database
     if (vlan === "2104" || vlan === "602" || vlan === "207") return;
 
     // =========================================================================
