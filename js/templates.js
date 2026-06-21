@@ -217,7 +217,7 @@ interface gpon-olt_${d.iface}
 exit
 interface gpon-onu_${d.iface}:${d.onu}
   name ${d.user}
-  description ${d.user} - ${d.desc}
+  description ${d.desc}
   tcont 1 profile kusuma
   gemport 1 tcont 1
   service-port 1 vport 1 user-vlan 207 vlan 207
