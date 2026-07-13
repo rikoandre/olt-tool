@@ -174,13 +174,15 @@ function generate() {
     let script = "";
 
     try {
-        // --- LOGIC PEMILIHAN TEMPLATE ---
+        // --- LOGIC PEMILIHAN TEMPLATE ----
         if (olt === "c600") {
             // ==========================================
             // SEKSI OLT ZTE C600 (V9)
             // ==========================================
             if (vlan === "2104") {
                 script = c600DdrPrismaTemplate(data);
+            } else if (vlan === "130") {
+                script = c600Vlan130Template(data);
             } else {
                 script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
             }
@@ -235,6 +237,9 @@ function generate() {
 /**
  * Mengatur tampilan dropdown VLAN dan validasi input berdasarkan tipe OLT & VLAN
  */
+/**
+ * Mengatur tampilan dropdown VLAN berdasarkan tipe OLT
+ */
 function toggleVlan() {
     const olt = document.getElementById("oltType").value;
     const vlanSelect = document.getElementById("vlan");
@@ -248,17 +253,25 @@ function toggleVlan() {
 
     // --- 1. FILTER DROPDOWN BERDASARKAN OLT ---
     if (olt === "c600") {
+        // C600 hanya menampilkan: 134, 130, dan 2104
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134" || val === "2104") ? "block" : "none";
+            options[i].style.display = (val === "134" || val === "130" || val === "2104") ? "block" : "none";
         }
-        if (vlanVal !== "134" && vlanVal !== "2104") vlanSelect.value = "134";
+        // Jika pilihan sebelumnya bukan milik C600, reset default ke 134
+        if (vlanVal !== "134" && vlanVal !== "130" && vlanVal !== "2104") {
+            vlanSelect.value = "134";
+        }
     } else {
+        // C320/C300 menampilkan semua KECUALI 134 dan 130
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134") ? "none" : "block";
+            options[i].style.display = (val === "134" || val === "130") ? "none" : "block";
         }
-        if (vlanVal === "134") vlanSelect.value = "1001";
+        // Jika pilihan sebelumnya tersangkut di 134 atau 130, reset default ke 1001
+        if (vlanVal === "134" || vlanVal === "130") {
+            vlanSelect.value = "1001";
+        }
     }
 
     const currentVlan = vlanSelect.value;
@@ -550,3 +563,192 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
+/**
+ * Membuka Modal Quick Fill menggunakan SweetAlert2 (Anti-Error bootstrap undefined)
+ */
+/**
+ * Membuka Modal Quick Fill menggunakan SweetAlert2 dengan penangkapan DOM yang tepat
+ */
+function openQuickFillModal() {
+    Swal.fire({
+        title: 'Smart Quick Fill',
+        html: `
+            <p class="text-muted small text-start">Tempelkan data secara bebas (urutan tidak berpengaruh):</p>
+            <textarea id="quickFillTextarea" class="form-control" rows="6" 
+                placeholder="Contoh:\ngpon-onu_1/1/5:2\n120426\nCDTCAF5F047E\n0010100011|LAILA ZULFATUN NABILAH"></textarea>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-magic me-2"></i> Ekstrak Data',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#198754',
+        focusConfirm: false,
+        preConfirm: () => {
+            // Menggunakan Swal.getPopup() untuk mencari textarea di dalam modal
+            const popup = Swal.getPopup();
+            const textarea = popup.querySelector('#quickFillTextarea');
+            const rawText = textarea ? textarea.value.trim() : "";
+            
+            if (!rawText) {
+                Swal.showValidationMessage('Silakan tempelkan data terlebih dahulu!');
+                return false;
+            }
+            return rawText;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            executeQuickFillParsing(result.value);
+        }
+    });
+}
+/**
+ * Eksekusi pemisahan data unconfigured OLT, Pelanggan, dan Otomatisasi Dropdown VLAN & OLT
+ * (Sudah Mendukung Pencarian Berdasarkan Kode Entitas Teks: Misal 'UNB' -> 100)
+ */
+function executeQuickFillParsing(rawText) {
+    const interfaceRegex = /(\d+\/\d+\/\d+)/;
+    const onuRegex = /\d+\/\d+\/\d+:(\d+)/;
+    const snRegex = /(?:[A-Z]{4}[A-F0-9]{8}|[A-F0-9]{12})/i;
+    const vlanKeywordRegex = /(?:vlan|v)[:\s=-]*(\d{3,4})/i;
+
+    // --- TABEL PEMETAAN SINGKATAN ENTITAS KE KODE VLAN ---
+    const entitasMapping = {
+        "unr-r-dist-2": "134",
+        "unr": "134", // shortcut
+        "unr2": "130",
+        "rjw": "1001", // shortcut
+        "ubl": "1002",
+        "ugr": "1000",
+        "ugr-bbd": "207",
+        "uho": "110",
+        "ddr-prisma": "2104",
+        "ddr": "2104", // shortcut
+        "prisma": "2104", // shortcut
+        "unb": "100",
+        "ucd": "511",
+        "bolo": "1501",
+        "al-qoriyah": "1600",
+        "qoriyah": "1600", // shortcut
+        "alnet": "602",
+        "lexxa": "903"
+    };
+
+    let foundIface = "", foundOnu = "", foundSn = "", foundUser = "", foundDesc = "", foundPass = "", foundVlan = "";
+    const lines = rawText.split('\n');
+
+    lines.forEach(line => {
+        let t = line.trim();
+        if (!t) return;
+
+        // 1. A. Deteksi Otomatis Opsi Angka VLAN (Eksisting)
+        if (vlanKeywordRegex.test(t)) {
+            foundVlan = t.match(vlanKeywordRegex)[1];
+        } else if (/^\d{3,4}$/.test(t)) { 
+            foundVlan = t;
+        } 
+        // 1. B. Deteksi VLAN Berdasarkan Nama Entitas (Baru)
+        else if (!foundVlan) {
+            // Ubah teks baris menjadi huruf kecil agar pencarian tidak sensitif huruf besar/kecil
+            const lowerLine = t.toLowerCase();
+            
+            // Cari apakah ada kata kunci entitas yang cocok di dalam baris tersebut
+            for (const [key, vlanCode] of Object.entries(entitasMapping)) {
+                if (lowerLine.includes(key)) {
+                    foundVlan = vlanCode;
+                    break; // Keluar dari loop jika sudah ketemu yang cocok
+                }
+            }
+        }
+
+        // 2. Deteksi Format Data Pelanggan (ID & Nama)
+        if (/^\d{10}/.test(t)) { 
+            const matchDb = t.match(/^(\d{10})(?:\s*[\s|:\t-]\s*)(.*)$/);
+            if (matchDb) {
+                foundUser = matchDb[1];
+                foundDesc = matchDb[2].trim().toUpperCase();
+                return; 
+            }
+        }
+
+        // 3. Deteksi Interface & ONU ID
+        if (interfaceRegex.test(t) && !foundIface) {
+            const matchIface = t.match(interfaceRegex);
+            foundIface = formatInterface ? formatInterface(matchIface[1]) : matchIface[1];
+            
+            const matchOnu = t.match(onuRegex);
+            if (matchOnu) {
+                let onuId = parseInt(matchOnu[1], 10);
+                if (!isNaN(onuId) && onuId <= 128) foundOnu = onuId;
+            }
+            return;
+        }
+
+        // 4. Deteksi Serial Number (SN)
+        if (snRegex.test(t) && !foundSn) {
+            foundSn = t.match(snRegex)[0].toUpperCase();
+            return;
+        }
+
+        // 5. Deteksi Password (6 digit angka murni)
+        if (/^\d{6}$/.test(t) && !foundPass) {
+            foundPass = t;
+            return;
+        }
+
+        // 6. Cadangan: Jika 10 digit murni tanpa nama
+        if (/^\d{10}$/.test(t) && !foundUser) {
+            foundUser = t;
+            return;
+        }
+    });
+
+    // ===================================================
+    // LOGIKA PENYESUAIAN DROPDOWN OLT & VLAN YANG SINKRON
+    // ===================================================
+    if (foundVlan) {
+        const oltSelect = document.getElementById("oltType");
+        const vlanSelect = document.getElementById("vlan");
+
+        if (oltSelect && vlanSelect) {
+            // A. Tentukan OLT berdasarkan aturan VLAN Anda
+            if (foundVlan === "134" || foundVlan === "130") {
+                oltSelect.value = "c600";
+            } else if (foundVlan === "2104") {
+                // VLAN 2104 ada di kedua OLT, biarkan pada kondisi saat ini
+            } else {
+                let targetOlt = Array.from(oltSelect.options).some(o => o.value === "c320") ? "c320" : oltSelect.options[1].value;
+                oltSelect.value = targetOlt;
+            }
+
+            // B. Jalankan filter awal dropdown
+            if (typeof toggleVlan === "function") {
+                toggleVlan();
+            }
+
+            // C. Inject nilai VLAN ke dropdown
+            let optionExists = Array.from(vlanSelect.options).some(opt => opt.value === foundVlan);
+            if (optionExists) {
+                vlanSelect.value = foundVlan;
+                toggleVlan(); // Sinkronisasi ulang UI
+            }
+        }
+    }
+
+    // --- MASUKKAN DATA TEKS SISANYA KE FORM ---
+    if (foundIface) document.getElementById("iface").value = foundIface;
+    if (foundOnu)   document.getElementById("onu").value = foundOnu;
+    if (foundSn)    document.getElementById("sn").value = foundSn;
+    if (foundUser)  document.getElementById("user").value = foundUser;
+    if (foundPass)  document.getElementById("pass").value = foundPass;
+    if (foundDesc)  document.getElementById("desc").value = foundDesc;
+
+    // Feedback sukses
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Smart Fill & Auto Entitas Berhasil!',
+        showConfirmButton: false,
+        timer: 2000
+    });
+}
