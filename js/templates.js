@@ -28,6 +28,29 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
 exit
 exit`;
 
+const c600Vlan130Template = (d) => `conf t
+interface gpon_olt-${d.iface}
+  onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon_onu-${d.iface}:${d.onu}
+  name ${d.user}
+  description ${d.desc}
+  tcont 1 profile kusuma
+  gemport 1 tcont 1
+exit
+interface vport-${d.iface}.${d.onu}:1
+  service-port 1 user-vlan 130 vlan 130
+exit
+pon-onu-mng gpon_onu-${d.iface}:${d.onu}
+  service 1 gemport 1 vlan 130
+  security-mgmt 1 state enable mode forward protocol web
+  wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v130 host 1
+  wan 1 service tr069 internet
+  tr069-mgmt 1 state unlock
+  tr069-mgmt 1 acs http://acs.upaz.net.id:9999/ validate basic username acs@upaz.net.id password upaz8ersinar
+exit
+exit`;
+
 const c600Template = (d) => `conf t
 interface gpon_olt-${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
