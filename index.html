@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,6 +63,7 @@
                                 <option value="1002">VLAN 1002 (UBL)</option>
                                 <option value="1000">VLAN 1000 (UGR)</option>
                                 <option value="207">VLAN 207 (UGR-BBD)</option>
+                                <option value="1006">VLAN 1006 (UGR-KWD)</option>
                                 <option value="110">VLAN 110 (UHO)</option>
                                 <option value="2104">VLAN 2104 (DDR-PRISMA)</option>
                                 <option value="100">VLAN 100 (UNB)</option>                                             
@@ -109,7 +110,7 @@
                         <div class="col-6">
                             <div class="input-group input-group-sm olt-input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-barcode"></i></span>
-                                <input id="sn" class="form-control" placeholder="SN">
+                                <input id="sn" class="form-control" placeholder="SN" onpaste="handlePaste(event)">
                             </div>
                         </div>
                     </div>
@@ -208,7 +209,7 @@
                             </div>
                             <div class="btn-group-vertical w-100">
                                 <button onclick="openQuickFillModal()" class="btn btn-outline-success btn-sm mb-1" type="button">
-                                        <i class="fas fa-broadcast-tower me-2"></i> Quick Fill
+                                    <i class="fas fa-bolt me-2"></i> Smart Quick Fill
                                 </button>
                                 <button onclick="cekRedamanPort()" class="btn btn-outline-success btn-sm mb-1">
                                     <i class="fas fa-broadcast-tower me-2"></i> Cek Redaman Port
@@ -266,32 +267,12 @@
                     </div>
                 </div>
             </div>
-        </div>
-         <!-- Struktur Modal Quick Fill (Bootstrap) -->
-<div class="modal fade" id="quickFillModal" tabindex="-1" aria-labelledby="quickFillModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="quickFillModalLabel"><i class="fas fa-bolt me-2"></i> Smart Quick Fill</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small">Tempelkan log unconfigured OLT atau data pelanggan di bawah ini secara bebas (urutan tidak berpengaruh):</p>
-                <div class="mb-3">
-                    <textarea class="form-control" id="quickFillTextarea" rows="6" placeholder="Contoh:&#10;gpon-onu_1/1/5:2&#10;120426&#10;CDTCAF5F047E&#10;0010100011|LAILA ZULFATUN NABILAH"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" onclick="processQuickFill()" class="btn btn-success"><i class="fas fa-magic me-2"></i> Ekstrak Data</button>
-            </div>
+
         </div>
     </div>
-</div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/browser/bootstrap.bundle.min.js"></script>
-    <!-- 2. SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- JavaScript Dependencies (Urutan Sangat Penting) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/templates.js"></script>
     <script src="js/prompt.js"></script>
     <script src="js/app.js"></script>
