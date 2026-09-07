@@ -348,6 +348,26 @@ exit
 exit
 write`,
 
+"1006": (d) => `config terminal
+interface gpon-olt_${d.iface}
+  onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon-onu_${d.iface}:${d.onu}
+  name ${d.user}
+  description ${d.desc}
+  tcont 1 profile kusuma
+  gemport 1 tcont 1
+  service-port 1 vport 1 user-vlan 1006 vlan 1006
+exit
+pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+  service 1 gemport 1 vlan 1006
+  security-mgmt 1 state enable mode forward protocol web
+  wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile v1006 host 1
+exit
+exit
+write`,
+
+
     "100": (d) => `conf t
 interface gpon-olt_${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
