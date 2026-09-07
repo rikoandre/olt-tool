@@ -1,175 +1,152 @@
 /* ============================================
-   OLT Config Generator - Modern UI
+   OLT Config Generator - Glassmorphism UI
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* CSS Variables */
 :root {
     --font-main: 'Inter', system-ui, -apple-system, sans-serif;
-    --bg-gradient-start: #f0f4f8;
-    --bg-gradient-end: #d9e2ec;
-    --panel-bg: rgba(255, 255, 255, 0.95);
-    --panel-border: rgba(255, 255, 255, 0.6);
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+
+    --bg-1: #1e1b4b;
+    --bg-2: #312e81;
+    --bg-3: #0f172a;
+
+    --glass-bg: rgba(255, 255, 255, 0.10);
+    --glass-bg-strong: rgba(255, 255, 255, 0.16);
+    --glass-border: rgba(255, 255, 255, 0.28);
+    --glass-border-strong: rgba(255, 255, 255, 0.45);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --success: #10b981;
-    --success-dark: #059669;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #0ea5e9;
-    --dark: #334155;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+
+    --primary: #818cf8;
+    --danger: #fb7185;
+
+    --shadow-xl: 0 20px 40px -8px rgb(0 0 0 / 0.45), 0 8px 16px -6px rgb(0 0 0 / 0.3);
+    --shadow-glow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 20px;
+
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Base */
 .olt-app {
     font-family: var(--font-main);
-    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     min-height: 100vh;
     color: var(--text-primary);
     padding-bottom: 2rem;
-}
-
-/* Scrollbar */
-.olt-app ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-.olt-app ::-webkit-scrollbar-track {
-    background: transparent;
-}
-.olt-app ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-}
-.olt-app ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-
-/* ============================================
-   HEADER
-   ============================================ */
-.app-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 1.25rem 0;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-lg);
     position: relative;
-    overflow: hidden;
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+    overflow-x: hidden;
 }
-.app-header::before {
+
+.olt-app::before,
+.olt-app::after {
     content: '';
-    position: absolute;
-    top: -50%;
-    right: -5%;
-    width: 300px;
-    height: 300px;
-    background: rgba(255,255,255,0.08);
+    position: fixed;
     border-radius: 50%;
+    filter: blur(90px);
+    z-index: 0;
     pointer-events: none;
 }
+.olt-app::before {
+    width: 550px;
+    height: 550px;
+    top: -150px;
+    left: -100px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.55) 0%, rgba(99, 102, 241, 0) 70%);
+}
+.olt-app::after {
+    width: 600px;
+    height: 600px;
+    bottom: -200px;
+    right: -150px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(56, 189, 248, 0) 70%);
+}
+
+.main-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.app-header {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1.25rem 0;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
 .app-header .brand {
     display: flex;
     align-items: center;
     gap: 1rem;
-    position: relative;
-    z-index: 1;
 }
 .app-header .brand-icon {
     width: 48px;
     height: 48px;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.16);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.25rem;
     color: white;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid var(--glass-border-strong);
 }
 .app-header .brand-text h1 {
     color: white;
     font-size: 1.25rem;
     font-weight: 800;
     margin: 0;
-    letter-spacing: -0.025em;
 }
 .app-header .brand-text span {
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.75);
     font-size: 0.8rem;
-    font-weight: 500;
 }
+
 .status-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid var(--glass-border);
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 50px;
     font-size: 0.8rem;
     font-weight: 600;
-    position: relative;
-    z-index: 1;
 }
 .status-badge .pulse {
     width: 8px;
     height: 8px;
     background: #4ade80;
     border-radius: 50%;
-    position: relative;
-}
-.status-badge .pulse::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    background: #4ade80;
-    border-radius: 50%;
-    opacity: 0.4;
-    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
-@keyframes pulse-ring {
-    0% { transform: scale(0.8); opacity: 0.8; }
-    100% { transform: scale(2.2); opacity: 0; }
 }
 
-/* ============================================
-   PANELS
-   ============================================ */
-.main-container {
-    max-width: 1600px;
-    margin: 0 auto;
-}
 .olt-panel {
-    background: var(--panel-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--panel-border) !important;
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid var(--glass-border) !important;
     border-radius: var(--radius-xl) !important;
     box-shadow: var(--shadow-xl) !important;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     height: 100%;
 }
-.olt-panel:hover {
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15) !important;
-}
+
 .panel-header {
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 1px solid var(--glass-border);
     padding-bottom: 0.875rem;
     margin-bottom: 1.25rem;
 }
@@ -179,20 +156,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-    color: var(--primary);
+    background: rgba(129, 140, 248, 0.25);
+    color: #c7d2fe;
     border-radius: var(--radius-sm);
-    font-size: 0.875rem;
     margin-right: 0.75rem;
 }
-.panel-header h6 {
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
-    color: var(--text-primary);
-}
 
-/* Sticky Input Panel on Desktop */
 @media (min-width: 992px) {
     .input-panel {
         position: sticky;
@@ -202,212 +171,96 @@
     }
 }
 
-/* ============================================
-   FORM ELEMENTS
-   ============================================ */
-.form-group {
-    margin-bottom: 0.25rem;
-}
 .form-group label {
     font-size: 0.75rem !important;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--text-secondary) !important;
     margin-bottom: 0.375rem;
-    display: block;
 }
 
-.olt-input-group {
-    position: relative;
-    transition: var(--transition);
-}
 .olt-input-group .input-group-text {
-    background: #f8fafc !important;
-    border: 2px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1.5px solid var(--glass-border);
     border-right: none;
     color: var(--text-muted);
     border-radius: var(--radius-md) 0 0 var(--radius-md);
-    padding-left: 0.875rem;
-    padding-right: 0.875rem;
-    transition: var(--transition);
 }
 .olt-input-group .form-control,
 .olt-input-group .form-select {
-    border: 2px solid #e2e8f0;
+    border: 1.5px solid var(--glass-border);
     border-left: none;
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
-    font-weight: 500;
     color: var(--text-primary);
-    background: #fff;
-    transition: var(--transition);
+    background: rgba(255, 255, 255, 0.06);
 }
-.olt-input-group .form-control::placeholder {
-    color: var(--text-muted);
-    font-weight: 400;
-}
-.olt-input-group:focus-within .input-group-text {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: #eef2ff !important;
-}
-.olt-input-group:focus-within .form-control,
-.olt-input-group:focus-within .form-select {
-    border-color: var(--primary);
-    box-shadow: none;
-    background: #fff;
-}
-.olt-input-group .form-select {
-    padding-right: 2rem;
-    cursor: pointer;
+.olt-input-group .form-select option {
+    background-color: #1e293b;
+    color: var(--text-primary);
 }
 
-/* Password Group Calendar Button */
-.password-group .btn-calendar {
-    border: 2px solid #e2e8f0;
-    border-left: none;
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    background: #f8fafc;
-    color: var(--text-muted);
-    padding: 0 0.875rem;
-    transition: var(--transition);
-    z-index: 10;
-}
-.password-group .btn-calendar:hover {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-.password-group:focus-within .btn-calendar {
-    border-color: var(--primary);
-}
-
-/* Fix for single select without label that has no left border issue */
-.olt-input-group:has(.form-select:not(#oltType):not(#vlan):not(#profile)) .input-group-text {
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-}
-
-/* ============================================
-   BUTTONS
-   ============================================ */
-.action-buttons {
-    margin-top: 0.5rem;
-}
 .btn-generate {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%) !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
     padding: 0.875rem !important;
     border-radius: var(--radius-md) !important;
-    font-size: 0.875rem;
-    letter-spacing: 0.025em;
-    box-shadow: 0 4px 14px 0 rgba(118, 75, 162, 0.39);
+    color: #fff;
     transition: var(--transition);
-    position: relative;
-    overflow: hidden;
 }
 .btn-generate:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(118, 75, 162, 0.5);
-    filter: brightness(1.05);
-}
-.btn-generate:active {
-    transform: translateY(0);
+    filter: brightness(1.08);
 }
 
 .btn-copy {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.85) 0%, rgba(5, 150, 105, 0.85) 100%) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
     border-radius: var(--radius-md) !important;
-    padding: 0.625rem !important;
-    font-weight: 600;
-    font-size: 0.8rem;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-    transition: var(--transition);
     color: white !important;
-}
-.btn-copy:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-    filter: brightness(1.05);
 }
 
 .btn-clear {
-    background: #f1f5f9 !important;
-    border: 2px solid #e2e8f0 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1.5px solid var(--glass-border) !important;
     border-radius: var(--radius-md) !important;
-    padding: 0.625rem !important;
-    font-weight: 600;
-    font-size: 0.8rem;
     color: var(--text-secondary) !important;
-    transition: var(--transition);
-}
-.btn-clear:hover {
-    background: #e2e8f0 !important;
-    border-color: #cbd5e1 !important;
-    color: var(--text-primary) !important;
-    transform: translateY(-1px);
 }
 
 .btn-secret {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.85) 0%, rgba(2, 132, 199, 0.85) 100%) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
     border-radius: var(--radius-md) !important;
-    padding: 0.625rem !important;
-    font-size: 0.8rem;
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
-    transition: var(--transition);
-}
-.btn-secret:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
-    filter: brightness(1.05);
+    color: #fff;
 }
 
-/* ============================================
-   TERMINAL / OUTPUT
-   ============================================ */
-.output-panel {
-    display: flex;
-    flex-direction: column;
-}
-.output-panel .panel-header {
-    flex-shrink: 0;
-}
 .cli-badge {
     font-size: 0.65rem;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    background: #1e293b;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(74, 222, 128, 0.3);
     color: #4ade80;
     padding: 0.25rem 0.625rem;
     border-radius: var(--radius-sm);
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
 }
 .terminal-wrapper {
-    background: #0f172a;
+    background: rgba(6, 12, 26, 0.75);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-    flex: 1;
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 .terminal-toolbar {
-    background: #1e293b;
+    background: rgba(30, 41, 59, 0.6);
     padding: 0.625rem 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid var(--glass-border);
 }
-.t-btn {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-}
+.t-btn { width: 12px; height: 12px; border-radius: 50%; }
 .t-btn.close { background: #f87171; }
 .t-btn.minimize { background: #fbbf24; }
 .t-btn.maximize { background: #4ade80; }
@@ -415,136 +268,58 @@
     margin-left: 0.75rem;
     color: #94a3b8;
     font-size: 0.75rem;
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
 }
 #output {
-    background: #0f172a;
+    background: transparent;
     color: #4ade80;
     border: none;
-    border-radius: 0;
     padding: 1.25rem;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: var(--font-mono);
     font-size: 0.8125rem;
     line-height: 1.7;
     resize: vertical;
-    flex: 1;
     min-height: 400px;
 }
-#output::placeholder {
-    color: #475569;
-    font-style: italic;
-}
-#output:focus {
-    outline: none;
-    box-shadow: none;
-}
 
-/* ============================================
-   QUICK COMMANDS
-   ============================================ */
 .command-groups {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
 }
 .command-group .group-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     font-size: 0.65rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
     color: var(--text-muted);
     margin-bottom: 0.625rem;
-    padding-left: 0.25rem;
-}
-.command-group .group-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, #e2e8f0, transparent);
-    margin-left: 0.25rem;
-}
-.command-group .group-label i {
-    font-size: 0.75rem;
 }
 .command-group .btn {
     text-align: left;
     border-radius: var(--radius-md);
     padding: 0.625rem 0.875rem;
-    font-weight: 500;
     font-size: 0.8125rem;
-    border-width: 1.5px;
+    background: rgba(255, 255, 255, 0.05);
     transition: var(--transition);
-    position: relative;
-    overflow: hidden;
 }
 .command-group .btn:hover {
     transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.1);
 }
-.command-group .btn i {
-    width: 20px;
-    text-align: center;
-}
-
-/* Danger Zone Special Styling */
-.danger-zone .group-label {
-    color: var(--danger);
-}
-.danger-zone .group-label::after {
-    background: linear-gradient(to right, #fecaca, transparent);
-}
+.danger-zone .group-label { color: var(--danger); }
 .danger-zone .btn-outline-danger {
-    border-color: #fecaca;
-    color: #dc2626;
-    background: rgba(239, 68, 68, 0.02);
-}
-.danger-zone .btn-outline-danger:hover {
-    background: rgba(239, 68, 68, 0.08);
-    border-color: #f87171;
-    color: #b91c1c;
+    border-color: rgba(251, 113, 133, 0.4);
+    color: #fda4af;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-@media (max-width: 991.98px) {
-    .app-header .brand-text h1 {
-        font-size: 1.1rem;
-    }
-    .app-header .brand-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-    .olt-panel {
-        margin-bottom: 1rem;
-    }
-    #output {
-        min-height: 300px;
-    }
-    .command-group .btn:hover {
-        transform: translateX(2px);
-    }
+/* Modals Custom Styling */
+.swal2-popup {
+    background: rgba(30, 27, 75, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary) !important;
+    border-radius: var(--radius-lg) !important;
 }
-
-@media (max-width: 575.98px) {
-    .olt-app {
-        padding-bottom: 1rem;
-    }
-    .app-header {
-        padding: 1rem 0;
-        margin-bottom: 1rem;
-    }
-    .panel-header {
-        margin-bottom: 1rem;
-    }
-    .btn-generate {
-        font-size: 0.8125rem;
-        padding: 0.75rem !important;
-    }
-    .terminal-toolbar {
-        padding: 0.5rem 0.75rem;
-    }
+.swal2-title, .swal2-content {
+    color: var(--text-primary) !important;
 }
