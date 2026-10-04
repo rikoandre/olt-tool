@@ -139,9 +139,6 @@ function validasiInput(isSecret = false) {
     return true; // Lolos semua validasi
 }
 
-/**
- * Fungsi Utama untuk Generate Script OLT
- */
 function generate() {
     // 1. Jalankan validasi (Cek kekosongan & format username)
     if (!validasiInput(false)) return;
@@ -183,6 +180,11 @@ function generate() {
                 script = c600DdrPrismaTemplate(data);
             } else if (vlan === "130") {
                 script = c600Vlan130Template(data);
+            } else if (vlan === "1001") {
+                // Pemisahan mode PPPoE vs Bridge untuk VLAN 1001
+                script = (mode === "bridge") 
+                    ? c600Vlan1001BridgeTemplate(data) 
+                    : (templates["1001"] ? templates["1001"](data) : c600Template(data));
             } else {
                 script = (mode === "bridge") ? c600BridgeTemplate(data) : c600Template(data);
             }
@@ -234,12 +236,6 @@ function generate() {
     }
 }
 
-/**
- * Mengatur tampilan dropdown VLAN dan validasi input berdasarkan tipe OLT & VLAN
- */
-/**
- * Mengatur tampilan dropdown VLAN berdasarkan tipe OLT
- */
 function toggleVlan() {
     const olt = document.getElementById("oltType").value;
     const vlanSelect = document.getElementById("vlan");
@@ -253,24 +249,24 @@ function toggleVlan() {
 
     // --- 1. FILTER DROPDOWN BERDASARKAN OLT ---
     if (olt === "c600") {
-        // C600 hanya menampilkan: 134, 130, dan 2104
+        // C600 menampilkan: 134, 130, 1001, dan 2104
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134" || val === "130" || val === "2104") ? "block" : "none";
+            options[i].style.display = (val === "134" || val === "130" || val === "1001" || val === "2104") ? "block" : "none";
         }
         // Jika pilihan sebelumnya bukan milik C600, reset default ke 134
-        if (vlanVal !== "134" && vlanVal !== "130" && vlanVal !== "2104") {
+        if (vlanVal !== "134" && vlanVal !== "130" && vlanVal !== "1001" && vlanVal !== "2104") {
             vlanSelect.value = "134";
         }
     } else {
-        // C320/C300 menampilkan semua KECUALI 134 dan 130
+        // C320/C300 menampilkan semua KECUALI 134, 130, dan 1001
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134" || val === "130") ? "none" : "block";
+            options[i].style.display = (val === "134" || val === "130" || val === "1001") ? "none" : "block";
         }
-        // Jika pilihan sebelumnya tersangkut di 134 atau 130, reset default ke 1001
-        if (vlanVal === "134" || vlanVal === "130") {
-            vlanSelect.value = "1001";
+        // Jika pilihan sebelumnya tersangkut di 134, 130, atau 1001, reset default ke 1002
+        if (vlanVal === "134" || vlanVal === "130" || vlanVal === "1001") {
+            vlanSelect.value = "1002";
         }
     }
 
@@ -283,6 +279,29 @@ function toggleVlan() {
         applyRegulerLogic(userInput, modeSelect, olt, currentVlan);
     }
 }
+
+
+function applyRegulerLogic(userInput, modeSelect, olt, vlanVal) {
+    userInput.placeholder = "Username (10 Digit Angka)";
+    userInput.maxLength = 10;
+    userInput.oninput = function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    };
+
+    // Tambahkan 1001 ke dalam daftar VLAN yang mendukung Mode Bridge
+    const supportBridge = ["100", "1501", "1000", "511", "1001"]; 
+    
+    if (olt === "c600") {
+        // OLT C600 mendukung Mode Bridge untuk VLAN standar & 1001
+        modeSelect.disabled = false;
+    } else {
+        // OLT C320/C300 hanya aktif jika VLAN ada dalam daftar supportBridge
+        const canBridge = supportBridge.includes(vlanVal);
+        modeSelect.disabled = !canBridge;
+        if (!canBridge) modeSelect.value = "pppoe";
+    }
+}
+
 
 /**
  * Helper: Logika Alfanumerik untuk DDR Prisma & ALNET
