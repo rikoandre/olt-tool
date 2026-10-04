@@ -74,6 +74,36 @@ pon-onu-mng gpon_onu-${d.iface}:${d.onu}
 exit
 exit`;
 
+// Template VLAN 1001 - Mode Bridge C600
+const c600Vlan1001BridgeTemplate = (d) => `conf t
+interface gpon_olt-${d.iface}
+  onu ${d.onu} type ALL sn ${d.sn}
+exit
+interface gpon_onu-${d.iface}:${d.onu}
+  name ${d.user}
+  description ${d.desc}
+  tcont 1 profile kusuma
+  tcont 2 profile kusuma
+  gemport 1 tcont 1
+  gemport 2 tcont 2
+exit
+interface vport-${d.iface}.${d.onu}:1
+  service-port 1 user-vlan 1001 vlan 1001
+exit
+interface vport-${d.iface}.${d.onu}:2
+  service-port 2 user-vlan 131 vlan 131
+exit
+pon-onu-mng gpon_onu-${d.iface}:${d.onu}
+  service 1 gemport 1 vlan 1001
+  service 2 gemport 2 vlan 131
+  vlan port eth_0/1 mode tag vlan 131
+  vlan port eth_0/2 mode tag vlan 131
+  security-mgmt 1 state enable mode forward protocol web
+  wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v1001 host 1
+exit
+exit`;
+
+
 const c600BridgeTemplate = (d) => `conf t
 interface gpon_olt-${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
@@ -88,6 +118,7 @@ interface gpon_onu-${d.iface}:${d.onu}
 exit
 interface vport-${d.iface}.${d.onu}:1
   service-port 1 user-vlan 128 vlan 128
+exit
 interface vport-${d.iface}.${d.onu}:2
   service-port 2 user-vlan 129 vlan 129
 exit
@@ -181,7 +212,7 @@ interface gpon-olt_${d.iface}
 exit
 interface gpon-onu_${d.iface}:${d.onu}
   name ${d.user}
-  description ${d.desc}_bridge
+  description ${d.desc}
   sn-bind enable sn
   tcont 1 profile kusuma
   gemport 1 tcont 1
@@ -253,24 +284,28 @@ exit
 exit
 write`,
 
-    "1001": (d) => `conf t
-interface gpon-olt_${d.iface}
+"1001": (d) => `conf t
+interface gpon_olt-${d.iface}
   onu ${d.onu} type ALL sn ${d.sn}
 exit
-interface gpon-onu_${d.iface}:${d.onu}
+interface gpon_onu-${d.iface}:${d.onu}
   name ${d.user}
   description ${d.desc}
   tcont 1 profile kusuma
   gemport 1 tcont 1
-  service-port 1 vport 1 user-vlan 1001 vlan 1001
 exit
-pon-onu-mng gpon-onu_${d.iface}:${d.onu}
+interface vport-${d.iface}.${d.onu}:1
+  service-port 1 user-vlan 1001 vlan 1001
+exit
+pon-onu-mng gpon_onu-${d.iface}:${d.onu}
   service 1 gemport 1 vlan 1001
   security-mgmt 1 state enable mode forward protocol web
-  wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile v1001 host 1
+  wan-ip 1 ipv4 mode pppoe username ${d.user} password ${d.pass} vlan-profile v1001 host 1
+  wan 1 service tr069 internet
+  tr069-mgmt 1 state unlock
+  tr069-mgmt 1 acs http://acs.upaz.net.id:9999/ validate basic username acs@upaz.net.id password upaz8ersinar
 exit
-exit
-write`,
+exit`,
 
     "134": (d) => `conf t
 interface gpon-olt_${d.iface}
@@ -374,7 +409,7 @@ interface gpon-olt_${d.iface}
 exit
 interface gpon-onu_${d.iface}:${d.onu}
   name ${d.user}
-  description ${d.user} - ${d.desc}
+  description ${d.desc}
   tcont 1 profile kusuma
   gemport 1 tcont 1
   service-port 1 vport 1 user-vlan 100 vlan 100
