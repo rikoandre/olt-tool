@@ -14,7 +14,7 @@ exit
 interface gpon_onu-${d.iface}:${d.onu}
   name ${d.user}
   description ${d.desc}
-  tcont 1 profile kusuma
+  gemport tcont 1 profile kusuma
   gemport 1 tcont 1
 exit
 interface vport-${d.iface}.${d.onu}:1
@@ -145,7 +145,7 @@ exit
 interface gpon-onu_${d.iface}:${d.onu}
   name ${d.user}
   description ${d.desc}
-  tcont 1 profile kusuma
+  gemport tcont 1 profile kusuma
   gemport 1 traffic-limit downstream DDR
   service-port 1 vport 1 user-vlan 2104 vlan 2104
 exit
