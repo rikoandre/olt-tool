@@ -277,7 +277,7 @@ interface gpon-onu_${d.iface}:${d.onu}
   service-port 1 vport 1 user-vlan 207 vlan 207
 exit
 pon-onu-mng gpon-onu_${d.iface}:${d.onu}
-  service 1 gemport 1 vlan 2107
+  service 1 gemport 1 vlan 207
   security-mgmt 1 state enable mode forward protocol web
   wan-ip 1 mode pppoe username ${d.user} password ${d.pass} vlan-profile v207 host 1
 exit
