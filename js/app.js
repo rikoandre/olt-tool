@@ -236,6 +236,9 @@ function generate() {
     }
 }
 
+/**
+ * Mengatur tampilan dropdown VLAN berdasarkan tipe OLT
+ */
 function toggleVlan() {
     const olt = document.getElementById("oltType").value;
     const vlanSelect = document.getElementById("vlan");
@@ -249,23 +252,23 @@ function toggleVlan() {
 
     // --- 1. FILTER DROPDOWN BERDASARKAN OLT ---
     if (olt === "c600") {
-        // C600 menampilkan: 134, 130, 1001, dan 2104
+        // C600 menampilkan: 134, 130, 1001, 1000, dan 2104
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134" || val === "130" || val === "1001" || val === "2104") ? "block" : "none";
+            options[i].style.display = (val === "134" || val === "130" || val === "1001" || val === "1000" || val === "2104") ? "block" : "none";
         }
         // Jika pilihan sebelumnya bukan milik C600, reset default ke 134
-        if (vlanVal !== "134" && vlanVal !== "130" && vlanVal !== "1001" && vlanVal !== "2104") {
+        if (vlanVal !== "134" && vlanVal !== "130" && vlanVal !== "1001" && vlanVal !== "1000" && vlanVal !== "2104") {
             vlanSelect.value = "134";
         }
     } else {
-        // C320/C300 menampilkan semua KECUALI 134, 130, dan 1001
+        // C320/C300 menampilkan semua KECUALI 134, 130, 1001, dan 1000
         for (let i = 0; i < options.length; i++) {
             const val = options[i].value;
-            options[i].style.display = (val === "134" || val === "130" || val === "1001") ? "none" : "block";
+            options[i].style.display = (val === "134" || val === "130" || val === "1001" || val === "1000") ? "none" : "block";
         }
-        // Jika pilihan sebelumnya tersangkut di 134, 130, atau 1001, reset default ke 1002
-        if (vlanVal === "134" || vlanVal === "130" || vlanVal === "1001") {
+        // Jika pilihan sebelumnya tersangkut di VLAN C600, reset default ke 1002
+        if (vlanVal === "134" || vlanVal === "130" || vlanVal === "1001" || vlanVal === "1000") {
             vlanSelect.value = "1002";
         }
     }
